@@ -1,9 +1,8 @@
 streamlit
-langchain==0.1.17
-langchain-community
-google-generativeai
 PyPDF2
 faiss-cpu
-google-generativeai
+langchain
+langchain-community
+langchain-text-splitters
 sentence-transformers
-huggingface-hub
+google-generativeai
