@@ -12,7 +12,7 @@ from langchain.prompts import PromptTemplate
 # =========================
 # API KEY (use Streamlit secrets in production)
 # =========================
-os.environ["GOOGLE_API_KEY"] = st.secrets.get("GOOGLE_API_KEY", "YOUR_API_KEY")
+os.environ["GOOGLE_API_KEY"] = st.secrets.get("GOOGLE_API_KEY", "AQ.Ab8RN6K3pk2kVR1cQB1w1yLTI0oslfmupO_syeBFJVII7Oqi3w")
 
 # =========================
 # Streamlit Config
