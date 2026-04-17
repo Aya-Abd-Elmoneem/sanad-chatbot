@@ -3,22 +3,24 @@ import os
 from PyPDF2 import PdfReader
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_community.vectorstores import FAISS
+
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
 from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 # =========================
-# API KEY (use Streamlit secrets in production)
+# API KEY (ONLY for LLM)
 # =========================
-os.environ["GOOGLE_API_KEY"] = st.secrets.get("GOOGLE_API_KEY", "AQ.Ab8RN6K3pk2kVR1cQB1w1yLTI0oslfmupO_syeBFJVII7Oqi3w")
+os.environ["GOOGLE_API_KEY"] = st.secrets.get("GOOGLE_API_KEY", "AQ.Ab8RN6L7FSURN_RrKq7qULC8DNMMIvQLnhVrnI5g8KY2EC_rKQ")
 
 # =========================
-# Streamlit Config
+# Streamlit UI
 # =========================
 st.set_page_config(page_title="SAND AI Assistant", layout="wide")
-st.title("🌾 SAND AI Assistant for Farmers")
+st.title("🌾 SAND AI Assistant for Egyptian Farmers")
 
 # =========================
 # Extract text from PDFs
@@ -34,15 +36,23 @@ def get_pdf_text(pdf_docs):
     return text
 
 # =========================
+# Embeddings (FIXED - NO GOOGLE EMBEDDINGS)
+# =========================
+def get_embeddings():
+    return HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
+
+# =========================
 # Create Vector Store
 # =========================
 def get_vector_store(text_chunks):
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+    embeddings = get_embeddings()
     vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
     vector_store.save_local("faiss_index")
 
 # =========================
-# QA Chain (Stable Version)
+# QA Chain
 # =========================
 def get_chain():
     llm = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3)
@@ -51,7 +61,7 @@ def get_chain():
         template="""
 You are "SAND", an Egyptian bank assistant.
 
-Answer ONLY using the given context.
+Answer ONLY using the provided context.
 
 Context:
 {context}
@@ -64,23 +74,22 @@ Answer:
         input_variables=["context", "question"]
     )
 
-    chain = load_qa_chain(llm, chain_type="stuff", prompt=prompt)
-    return chain
+    return load_qa_chain(llm, chain_type="stuff", prompt=prompt)
 
 # =========================
-# Sidebar UI
+# Sidebar
 # =========================
 with st.sidebar:
     st.header("📂 Upload PDF Files")
 
     pdf_docs = st.file_uploader(
-        "Upload your PDFs",
+        "Upload your PDF files",
         accept_multiple_files=True
     )
 
     if st.button("🔍 Process Files"):
         if pdf_docs:
-            with st.spinner("Processing PDFs..."):
+            with st.spinner("Reading PDFs..."):
                 raw_text = get_pdf_text(pdf_docs)
 
                 splitter = RecursiveCharacterTextSplitter(
@@ -92,7 +101,7 @@ with st.sidebar:
 
                 get_vector_store(text_chunks)
 
-            st.success("Files processed successfully ✅")
+            st.success("Processing completed successfully ✅")
         else:
             st.warning("Please upload PDF files first")
 
@@ -102,7 +111,7 @@ with st.sidebar:
 user_question = st.text_input("💬 Ask SAND:")
 
 if user_question:
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+    embeddings = get_embeddings()
 
     db = FAISS.load_local(
         "faiss_index",
