@@ -11,7 +11,7 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 # =========================
 # API KEY
 # =========================
-GOOGLE_API_KEY = st.secrets.get("GOOGLE_API_KEY", "AQ.Ab8RN6L7FSURN_RrKq7qULC8DNMMIvQLnhVrnI5g8KY2EC_rKQ")
+GOOGLE_API_KEY = st.secrets.get("GOOGLE_API_KEY", "AQ.Ab8RN6KTMqRcRB6-eX3FOZuCdQUaENe2Db_eYBxDmGRrQhpv7A")
 os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
 
 genai.configure(api_key=GOOGLE_API_KEY)
