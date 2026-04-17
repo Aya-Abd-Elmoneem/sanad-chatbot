@@ -6,18 +6,18 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_community.vectorstores import FAISS
 
-from langchain.chains import load_qa_chain
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
+from langchain.chains.combine_documents import create_stuff_documents_chain
 
 # =========================
-# API KEY
+# API KEY (use Streamlit secrets in production)
 # =========================
-os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+os.environ["GOOGLE_API_KEY"] = st.secrets.get("GOOGLE_API_KEY", "YOUR_API_KEY")
 
 # =========================
-# Streamlit Configuration
+# Streamlit UI
 # =========================
-st.set_page_config(page_title="SAND - AI Assistant", layout="wide")
+st.set_page_config(page_title="SAND AI Assistant", layout="wide")
 st.title("🌾 SAND Project: AI Assistant for Egyptian Farmers")
 
 # =========================
@@ -41,13 +41,13 @@ def get_vector_store(text_chunks):
     vector_store.save_local("faiss_index")
 
 # =========================
-# QA Chain (Question Answering)
+# Build QA chain (NEW LANGCHAIN STYLE)
 # =========================
-def get_conversational_chain():
-    prompt_template = """
-    You are an Egyptian bank employee named 'SAND'.
-    Help farmers using simple rural Egyptian dialect.
+def get_chain():
+    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.3)
 
+    prompt = ChatPromptTemplate.from_template("""
+    You are "SAND", an Egyptian bank assistant.
     Answer only from the provided context.
 
     Context:
@@ -56,24 +56,17 @@ def get_conversational_chain():
     Question:
     {question}
 
-    Response:
-    """
+    Answer:
+    """)
 
-    model = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3)
-
-    prompt = PromptTemplate(
-        template=prompt_template,
-        input_variables=["context", "question"]
-    )
-
-    chain = load_qa_chain(model, chain_type="stuff", prompt=prompt)
+    chain = create_stuff_documents_chain(llm, prompt)
     return chain
 
 # =========================
-# Sidebar UI
+# Sidebar
 # =========================
 with st.sidebar:
-    st.header("📂 Data Upload")
+    st.header("📂 Upload Data")
 
     pdf_docs = st.file_uploader(
         "Upload PDF files",
@@ -82,7 +75,7 @@ with st.sidebar:
 
     if st.button("🔍 Process"):
         if pdf_docs:
-            with st.spinner("Reading files..."):
+            with st.spinner("Reading PDFs..."):
                 raw_text = get_pdf_text(pdf_docs)
 
                 text_splitter = RecursiveCharacterTextSplitter(
@@ -94,31 +87,31 @@ with st.sidebar:
 
                 get_vector_store(chunks)
 
-            st.success("Processing completed successfully ✅")
+            st.success("Processing completed ✅")
         else:
             st.warning("Please upload PDF files first")
 
 # =========================
-# Main Chat Interface
+# Chat Section
 # =========================
 user_question = st.text_input("💬 Ask SAND:")
 
 if user_question:
     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 
-    new_db = FAISS.load_local(
+    db = FAISS.load_local(
         "faiss_index",
         embeddings,
         allow_dangerous_deserialization=True
     )
 
-    docs = new_db.similarity_search(user_question)
+    docs = db.similarity_search(user_question)
 
-    chain = get_conversational_chain()
+    chain = get_chain()
 
-    response = chain(
-        {"input_documents": docs, "question": user_question},
-        return_only_outputs=True
-    )
+    response = chain.invoke({
+        "context": docs,
+        "question": user_question
+    })
 
-    st.info(response["output_text"])
+    st.info(response)
