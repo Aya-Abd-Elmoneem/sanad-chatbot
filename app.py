@@ -12,7 +12,7 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 # =========================
 # API KEY (use Streamlit secrets in production)
 # =========================
-os.environ["GOOGLE_API_KEY"] = st.secrets.get("GOOGLE_API_KEY", "YOUR_API_KEY")
+os.environ["GOOGLE_API_KEY"] = st.secrets.get("GOOGLE_API_KEY", "AQ.Ab8RN6I0UeQg_ELDAMhKqiGaZ-QjhxFCc4uZNniLL2-1i7xdwA")
 
 # =========================
 # Streamlit UI
