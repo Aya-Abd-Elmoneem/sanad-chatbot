@@ -1,29 +1,29 @@
 import streamlit as st
 import google.generativeai as genai
 from PyPDF2 import PdfReader
-
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
 # =========================
-# API KEY
+# CONFIG
 # =========================
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-
-# =========================
-# Gemini Model (WORKING)
-# =========================
 model = genai.GenerativeModel("models/gemini-flash-latest")
 
-# =========================
-# Streamlit UI
-# =========================
-st.set_page_config(page_title="SANAD AI Assistant", layout="wide")
-st.title("🌾 SANAD AI Assistant")
+st.set_page_config(page_title="SANAD AI", layout="wide")
 
 # =========================
-# Read PDF Text
+# SESSION STATE (NAVIGATION)
+# =========================
+if "page" not in st.session_state:
+    st.session_state.page = "home"
+
+if "chat_type" not in st.session_state:
+    st.session_state.chat_type = None
+
+# =========================
+# FUNCTIONS (same logic)
 # =========================
 def get_pdf_text(pdf_docs):
     text = ""
@@ -35,72 +35,112 @@ def get_pdf_text(pdf_docs):
                 text += page_text
     return text
 
-# =========================
-# Embeddings (Stable)
-# =========================
+
 def get_embeddings():
     return HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
 
-# =========================
-# Create FAISS Index
-# =========================
+
 def create_vector_store(text_chunks):
     embeddings = get_embeddings()
     db = FAISS.from_texts(text_chunks, embedding=embeddings)
     db.save_local("faiss_index")
 
-# =========================
-# Sidebar Upload
-# =========================
-with st.sidebar:
-    st.header("📂 Upload PDFs")
 
-    pdf_docs = st.file_uploader(
-        "Upload PDF files",
-        accept_multiple_files=True
-    )
-
-    if st.button("Process PDFs"):
-        if pdf_docs:
-            with st.spinner("Reading PDFs..."):
-                raw_text = get_pdf_text(pdf_docs)
-
-                splitter = RecursiveCharacterTextSplitter(
-                    chunk_size=1000,
-                    chunk_overlap=100
-                )
-
-                chunks = splitter.split_text(raw_text)
-                create_vector_store(chunks)
-
-            st.success("Processing completed ✅")
-        else:
-            st.warning("Please upload PDF files first")
-
-# =========================
-# Chat Section
-# =========================
-question = st.text_input("💬 Ask SAND:")
-
-if question:
+def load_db():
     embeddings = get_embeddings()
-
-    db = FAISS.load_local(
+    return FAISS.load_local(
         "faiss_index",
         embeddings,
         allow_dangerous_deserialization=True
     )
 
-    docs = db.similarity_search(question)
+# =========================
+# HOME PAGE UI
+# =========================
+def home_page():
+    st.markdown(
+        """
+        <h1 style='text-align:center; color:#2E8B57;'>🌾 SANAD AI Assistant</h1>
+        <p style='text-align:center; font-size:18px;'>
+        Choose your specialization chatbot
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
 
-    context = "\n\n".join([doc.page_content for doc in docs])
+    col1, col2, col3 = st.columns(3)
 
-    prompt = f"""
-You are "SANAD", an Egyptian AI assistant.
+    with col1:
+        if st.button("🌱 Agriculture AI"):
+            st.session_state.page = "chat"
+            st.session_state.chat_type = "agriculture"
 
-Answer ONLY using the context below.
+    with col2:
+        if st.button("📊 Data Science AI"):
+            st.session_state.page = "chat"
+            st.session_state.chat_type = "data"
+
+    with col3:
+        if st.button("🤖 General AI"):
+            st.session_state.page = "chat"
+            st.session_state.chat_type = "general"
+
+# =========================
+# SIDEBAR (PDF UPLOAD)
+# =========================
+def sidebar_upload():
+    with st.sidebar:
+        st.header("📂 Upload PDFs")
+
+        pdf_docs = st.file_uploader(
+            "Upload PDF files",
+            accept_multiple_files=True
+        )
+
+        if st.button("Process PDFs"):
+            if pdf_docs:
+                with st.spinner("Processing..."):
+                    raw_text = get_pdf_text(pdf_docs)
+
+                    splitter = RecursiveCharacterTextSplitter(
+                        chunk_size=1000,
+                        chunk_overlap=100
+                    )
+
+                    chunks = splitter.split_text(raw_text)
+                    create_vector_store(chunks)
+
+                st.success("Done ✅")
+            else:
+                st.warning("Upload PDFs first")
+
+# =========================
+# CHAT PAGE UI
+# =========================
+def chat_page():
+    st.title(f"💬 {st.session_state.chat_type.upper()} Chatbot")
+
+    if st.button("⬅ Back"):
+        st.session_state.page = "home"
+
+    question = st.text_input("Ask your question:")
+
+    if question:
+        db = load_db()
+        docs = db.similarity_search(question)
+
+        context = "\n\n".join([d.page_content for d in docs])
+
+        system_prompt = {
+            "agriculture": "You are an agriculture expert AI assistant.",
+            "data": "You are a data science expert AI assistant.",
+            "general": "You are a helpful AI assistant."
+        }
+
+        prompt = f"""
+{system_prompt[st.session_state.chat_type]}
 
 Context:
 {context}
@@ -111,6 +151,15 @@ Question:
 Answer:
 """
 
-    response = model.generate_content(prompt)
+        response = model.generate_content(prompt)
+        st.success(response.text)
 
-    st.info(response.text)
+# =========================
+# ROUTING
+# =========================
+if st.session_state.page == "home":
+    home_page()
+
+elif st.session_state.page == "chat":
+    sidebar_upload()
+    chat_page()
