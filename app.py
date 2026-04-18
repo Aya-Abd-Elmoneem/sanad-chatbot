@@ -1,42 +1,42 @@
 import streamlit as st
-import os
-from PyPDF2 import PdfReader
-
 import google.generativeai as genai
+from PyPDF2 import PdfReader
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
 # =========================
-# API KEY
+# Configure API Key (SAFE)
 # =========================
-GOOGLE_API_KEY = st.secrets.get("GOOGLE_API_KEY", "AIzaSyC5Pf2lZRHTAetZUyH5T0TpaUHYh5V6nu0")
-os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
+genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 
-genai.configure(api_key=GOOGLE_API_KEY)
+# =========================
+# Load Gemini Model
+# =========================
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 # =========================
 # Streamlit UI
 # =========================
 st.set_page_config(page_title="SAND AI Assistant", layout="wide")
-st.title("🌾 SAND AI Assistant for Egyptian Farmers")
+st.title("🌾 SAND AI Assistant")
 
 # =========================
-# PDF Reader
+# Read PDFs
 # =========================
 def get_pdf_text(pdf_docs):
     text = ""
     for pdf in pdf_docs:
-        pdf_reader = PdfReader(pdf)
-        for page in pdf_reader.pages:
-            page_text = page.extract_text()
-            if page_text:
-                text += page_text
+        reader = PdfReader(pdf)
+        for page in reader.pages:
+            content = page.extract_text()
+            if content:
+                text += content
     return text
 
 # =========================
-# Embeddings (STABLE)
+# Embeddings
 # =========================
 def get_embeddings():
     return HuggingFaceEmbeddings(
@@ -44,17 +44,12 @@ def get_embeddings():
     )
 
 # =========================
-# Create FAISS Vector Store
+# Vector Store
 # =========================
-def get_vector_store(text_chunks):
+def create_vector_store(text_chunks):
     embeddings = get_embeddings()
     db = FAISS.from_texts(text_chunks, embedding=embeddings)
     db.save_local("faiss_index")
-
-# =========================
-# Gemini Model (NO LANGCHAIN WRAPPER)
-# =========================
-model = genai.GenerativeModel("gemini-1.5-flash")
 
 # =========================
 # Sidebar
@@ -67,9 +62,9 @@ with st.sidebar:
         accept_multiple_files=True
     )
 
-    if st.button("🔍 Process"):
+    if st.button("Process"):
         if pdf_docs:
-            with st.spinner("Reading PDFs..."):
+            with st.spinner("Processing..."):
                 raw_text = get_pdf_text(pdf_docs)
 
                 splitter = RecursiveCharacterTextSplitter(
@@ -78,18 +73,18 @@ with st.sidebar:
                 )
 
                 chunks = splitter.split_text(raw_text)
-                get_vector_store(chunks)
+                create_vector_store(chunks)
 
-            st.success("Processing completed ✅")
+            st.success("Done ✅")
         else:
-            st.warning("Please upload PDF files first")
+            st.warning("Upload files first")
 
 # =========================
 # Chat Section
 # =========================
-user_question = st.text_input("💬 Ask SAND:")
+question = st.text_input("💬 Ask SAND:")
 
-if user_question:
+if question:
     embeddings = get_embeddings()
 
     db = FAISS.load_local(
@@ -98,12 +93,12 @@ if user_question:
         allow_dangerous_deserialization=True
     )
 
-    docs = db.similarity_search(user_question)
+    docs = db.similarity_search(question)
 
     context = "\n\n".join([doc.page_content for doc in docs])
 
     prompt = f"""
-You are "SAND", an Egyptian bank assistant.
+You are "SAND", an Egyptian assistant.
 
 Answer ONLY using the context below.
 
@@ -111,7 +106,7 @@ Context:
 {context}
 
 Question:
-{user_question}
+{question}
 
 Answer:
 """
