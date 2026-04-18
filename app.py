@@ -57,7 +57,6 @@ def load_db():
 
 def text_to_audio(text):
     audio_file = "response.mp3"
-    # تنظيف النص من الرموز لضمان جودة الصوت
     clean_text = re.sub(r"[.,:*()\-\n#]", " ", text)
     async def generate():
         communicate = edge_tts.Communicate(clean_text, voice="ar-EG-SalmaNeural")
@@ -72,10 +71,9 @@ def autoplay_audio(file_path):
     st.markdown(f'<audio autoplay><source src="data:audio/mp3;base64,{b64}" type="audio/mp3"></audio>', unsafe_allow_html=True)
 
 # =========================
-# 4. HOME PAGE (CLICKABLE CARDS)
+# 4. FIXED HOME PAGE (FULL CLICKABLE CARDS)
 # =========================
 def home_page():
-    # CSS لتحويل البطاقة بالكامل لزر قابل للنقر وإخفاء النص الداخلي للزر
     st.markdown("""
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
@@ -88,104 +86,76 @@ def home_page():
 
             .main-header {
                 text-align: center;
-                padding: 60px 0 20px 0;
+                padding: 50px 0 30px 0;
             }
             
             .title-text {
-                font-size: 4rem;
+                font-size: 3.5rem;
                 font-weight: 900;
                 background: linear-gradient(90deg, #10b981, #34d399, #10b981);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 margin-bottom: 10px;
-                filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.2));
             }
 
             .tagline {
                 color: #94a3b8;
-                font-size: 1.3rem;
-                margin-bottom: 40px;
+                font-size: 1.2rem;
             }
 
-            /* تصميم الحاوية التي تضم الزر والمحتوى */
-            div[data-testid="stColumn"] div[data-testid="stVerticalBlock"] > div:has(button) {
-                background: rgba(30, 41, 59, 0.4);
-                border: 1px solid rgba(255, 255, 255, 0.05);
-                border-radius: 25px;
-                padding: 0px !important;
-                backdrop-filter: blur(10px);
-                transition: 0.4s ease;
-                min-height: 380px;
+            /* تصميم حاوية البطاقة */
+            .card-container {
                 position: relative;
-            }
-
-            div[data-testid="stColumn"] div[data-testid="stVerticalBlock"] > div:has(button):hover {
-                transform: translateY(-10px);
-                border-color: #10b981;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            }
-
-            /* جعل زر Streamlit شفافاً تماماً ويغطي كامل مساحة البطاقة */
-            .stButton > button {
-                width: 100% !important;
-                height: 380px !important;
-                background: transparent !important;
-                border: none !important;
-                color: transparent !important;
-                position: absolute !important;
-                top: 0;
-                left: 0;
-                z-index: 10;
-                cursor: pointer;
-            }
-            
-            .stButton > button:hover, .stButton > button:active, .stButton > button:focus {
-                background: transparent !important;
-                color: transparent !important;
-                border: none !important;
-                box-shadow: none !important;
-            }
-
-            /* طبقة المحتوى البصري (أيقونات ونصوص) */
-            .card-content {
+                background: rgba(30, 41, 59, 0.4);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 20px;
+                padding: 40px 20px;
+                text-align: center;
+                backdrop-filter: blur(10px);
+                transition: all 0.3s ease;
+                height: 350px;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                text-align: center;
-                padding: 40px 20px;
-                pointer-events: none; /* يسمح للنقرة بالمرور للزر الشفاف */
+            }
+
+            .card-container:hover {
+                transform: translateY(-10px);
+                border-color: #10b981;
+                box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            }
+
+            /* جعل الزر الشفاف يغطي البطاقة بالكامل دون التأثير على المحتوى */
+            .stButton > button {
+                position: absolute !important;
+                top: 0; left: 0; right: 0; bottom: 0;
+                width: 100% !important;
+                height: 100% !important;
+                background: transparent !important;
+                border: none !important;
+                color: transparent !important;
+                z-index: 100;
+                cursor: pointer;
             }
 
             .icon-circle {
-                background: rgba(16, 185, 129, 0.1);
-                width: 90px;
-                height: 90px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 3.5rem;
+                font-size: 4rem;
                 margin-bottom: 20px;
-                transition: 0.3s ease;
             }
 
             .card-title {
-                font-size: 1.7rem;
+                font-size: 1.5rem;
                 font-weight: 700;
                 color: #ffffff;
                 margin-bottom: 15px;
             }
 
             .card-desc {
-                font-size: 1.1rem;
+                font-size: 1rem;
                 color: #94a3b8;
-                line-height: 1.6;
+                line-height: 1.5;
             }
-            
-            /* إخفاء القوائم الافتراضية لستريمليت */
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
         </style>
     """, unsafe_allow_html=True)
 
@@ -198,45 +168,46 @@ def home_page():
 
     col1, col2, col3 = st.columns(3, gap="medium")
 
+    # بطاقة قسم تمويل المحاصيل
     with col1:
-        # الزر الشفاف الذي ينفذ الكود
-        if st.button("Agri", key="btn_agri_card"):
+        st.markdown('<div class="card-container">', unsafe_allow_html=True)
+        if st.button("Crop Financing", key="btn_crop"):
             st.session_state.chat_type = "agriculture"
             st.session_state.page = "chat"
             st.rerun()
-        # المحتوى البصري للبطاقة
         st.markdown("""
-            <div class="card-content">
-                <div class="icon-circle">🌱</div>
-                <div class="card-title">تمويل المحاصيل</div>
-                <div class="card-desc">تحليل متقدم لفرص تمويل المحاصيل الزراعية وتقديم حلول مخصصة للمزارعين.</div>
-            </div>
+            <div class="icon-circle">🌱</div>
+            <div class="card-title">تمويل المحاصيل</div>
+            <div class="card-desc">حلول ذكية لدعم إنتاج المحاصيل والمزارعين والنمو المستدام.</div>
+        </div>
         """, unsafe_allow_html=True)
 
+    # بطاقة قسم التمويل والقروض
     with col2:
-        if st.button("Finance", key="btn_finance_card"):
+        st.markdown('<div class="card-container">', unsafe_allow_html=True)
+        if st.button("Finance & Loans", key="btn_finance"):
             st.session_state.chat_type = "general"
             st.session_state.page = "chat"
             st.rerun()
         st.markdown("""
-            <div class="card-content">
-                <div class="icon-circle">📈</div>
-                <div class="card-title">التمويل والقروض</div>
-                <div class="card-desc">استكشاف الخيارات الائتمانية والتمويلية المتاحة لدعم المشاريع والنمو المالي.</div>
-            </div>
+            <div class="icon-circle">📈</div>
+            <div class="card-title">التمويل والقروض</div>
+            <div class="card-desc">استشارات ائتمانية وتسهيلات مالية مبتكرة لمشاريعك.</div>
+        </div>
         """, unsafe_allow_html=True)
 
+    # بطاقة قسم الثروة الحيوانية
     with col3:
-        if st.button("Livestock", key="btn_livestock_card"):
+        st.markdown('<div class="card-container">', unsafe_allow_html=True)
+        if st.button("Livestock", key="btn_livestock"):
             st.session_state.chat_type = "agriculture"
             st.session_state.page = "chat"
             st.rerun()
         st.markdown("""
-            <div class="card-content">
-                <div class="icon-circle">🐄</div>
-                <div class="card-title">الثروة الحيوانية</div>
-                <div class="card-desc">دعم شامل لمشاريع الإنتاج الحيواني والداجني عبر تحليلات دقيقة واستشارات فورية.</div>
-            </div>
+            <div class="icon-circle">🐄</div>
+            <div class="card-title">الثروة الحيوانية</div>
+            <div class="card-desc">دعم فني وتمويلي متخصص لمشاريع الإنتاج الحيواني والداجني.</div>
+        </div>
         """, unsafe_allow_html=True)
 
 # =========================
@@ -254,19 +225,13 @@ def sidebar():
                     chunks = splitter.split_text(raw_text)
                     create_vector_store(chunks)
                 st.success("تم التحديث بنجاح! ✅")
-            else:
-                st.warning("يرجى اختيار ملفات أولاً.")
 
 def chat_page():
     st.markdown(f"<h1 style='text-align: right; color: #10b981;'>💬 مساعد {st.session_state.chat_type.upper()}</h1>", unsafe_allow_html=True)
-    
     if st.button("⬅️ العودة للرئيسية"):
         st.session_state.page = "home"
         st.rerun()
 
-    st.divider()
-
-    # واجهة المحادثة
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
@@ -274,30 +239,22 @@ def chat_page():
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    if prompt := st.chat_input("اسأل مساعد SANAD..."):
+    if prompt := st.chat_input("اسأل SANAD..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+        with st.chat_message("user"): st.markdown(prompt)
 
         with st.chat_message("assistant"):
-            with st.spinner("جاري استخلاص الإجابة..."):
+            with st.spinner("جاري التفكير..."):
                 try:
                     db = load_db()
                     docs = db.similarity_search(prompt)
                     context = "\n\n".join([d.page_content for d in docs])
-                except:
-                    context = "لا توجد ملفات مرفوعة حالياً."
+                except: context = "لا توجد ملفات مرفوعة."
 
-                sys_prompt = "أنت خبير تقني في الزراعة والتمويل. أجب باللغة العربية بأسلوب واضح ومفيد."
-                full_query = f"{sys_prompt}\n\nالسياق: {context}\n\nالسؤال: {prompt}"
-                
-                response = model.generate_content(full_query)
+                response = model.generate_content(f"أجب بالعربية: {prompt}\n\nالسياق: {context}")
                 st.markdown(response.text)
-                
-                # توليد وتشغيل الصوت تلقائياً
                 audio_path = text_to_audio(response.text)
                 autoplay_audio(audio_path)
-                
                 st.session_state.messages.append({"role": "assistant", "content": response.text})
 
 # =========================
@@ -305,6 +262,6 @@ def chat_page():
 # =========================
 if st.session_state.page == "home":
     home_page()
-elif st.session_state.page == "chat":
+else:
     sidebar()
     chat_page()
