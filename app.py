@@ -41,7 +41,7 @@ def autoplay_audio(file_path):
     st.markdown(f'<audio autoplay><source src="data:audio/mp3;base64,{b64}" type="audio/mp3"></audio>', unsafe_allow_html=True)
 
 # =========================
-# 3. ADVANCED UI (STRICT BUTTON MATCHING)
+# 3. ADVANCED UI (ADJUSTED BUTTON POSITION)
 # =========================
 def home_page():
     st.markdown("""
@@ -67,14 +67,12 @@ def home_page():
                 -webkit-text-fill-color: transparent;
             }
 
-            /* حاوية العمود لضمان التموضع */
             [data-testid="stColumn"] {
                 position: relative;
                 display: flex;
                 flex-direction: column;
             }
 
-            /* تصميم البطاقة كخلفية ثابتة */
             .card-ui {
                 background: rgba(30, 41, 59, 0.4);
                 border: 1px solid rgba(255, 255, 255, 0.1);
@@ -88,24 +86,23 @@ def home_page():
                 align-items: center;
                 justify-content: center;
                 transition: 0.3s ease;
-                z-index: 1; /* خلف الزر */
+                z-index: 1;
             }
 
-            /* زر ستريمليت الشفاف الذي يغطي البطاقة بالمليمتر */
+            /* --- تم رفع الزر هنا باستعمال قيمة سالبة لـ top --- */
             .stButton > button {
                 position: absolute !important;
-                top: 0 !important;
+                top: -10px !important; /* رفع الزر للأعلى قليلاً */
                 left: 0 !important;
                 width: 100% !important;
-                height: 400px !important;
+                height: 410px !important; /* زيادة الارتفاع لتعويض الرفع */
                 background: transparent !important;
-                border: 1px solid transparent !important;
+                border: none !important;
                 color: transparent !important;
-                z-index: 5 !important; /* فوق المحتوى */
+                z-index: 5 !important;
                 cursor: pointer;
             }
 
-            /* تفاعل البطاقة عند تحريك الماوس فوق الزر */
             [data-testid="stColumn"]:hover .card-ui {
                 border-color: #10b981;
                 background: rgba(30, 41, 59, 0.6);
@@ -117,7 +114,6 @@ def home_page():
             .card-title { font-size: 1.6rem; font-weight: 700; color: white; margin-bottom: 10px; }
             .card-desc { font-size: 1rem; color: #94a3b8; line-height: 1.5; }
 
-            /* إخفاء الهوامش الافتراضية للزر */
             .stButton { margin: 0 !important; padding: 0 !important; }
         </style>
     """, unsafe_allow_html=True)
@@ -133,7 +129,6 @@ def home_page():
 
     def create_card(col, icon, title, desc, key, chat_type):
         with col:
-            # 1. التصميم البصري
             st.markdown(f"""
                 <div class="card-ui">
                     <div class="icon-box">{icon}</div>
@@ -142,7 +137,6 @@ def home_page():
                 </div>
             """, unsafe_allow_html=True)
             
-            # 2. الزر الشفاف المطبق فوق التصميم تماماً
             if st.button("", key=key):
                 st.session_state.chat_type = chat_type
                 st.session_state.page = "chat"
@@ -153,21 +147,15 @@ def home_page():
     create_card(col3, "🐄", "الثروة الحيوانية", "دعم فني وتمويلي لمشاريع الإنتاج الحيواني والداجني.", "livestock_btn", "agriculture")
 
 # =========================
-# 4. CHAT PAGE
+# 4. CHAT PAGE ROUTING
 # =========================
-def chat_page():
-    st.markdown(f"<h1 style='text-align: right; color: #10b981;'>💬 مساعد {st.session_state.chat_type.upper()}</h1>", unsafe_allow_html=True)
-    if st.button("⬅️ العودة للرئيسية"):
-        st.session_state.page = "home"
-        st.rerun()
-    
-    # واجهة المحادثة (تأكد من إضافة منطق Gemini هنا كما في الكود السابق)
-    st.info("قسم المحادثة جاهز لاستقبال أسئلتك.")
+if "page" not in st.session_state: st.session_state.page = "home"
 
-# =========================
-# 5. ROUTING
-# =========================
 if st.session_state.page == "home":
     home_page()
 else:
-    chat_page()
+    # منطق صفحة الدردشة
+    st.markdown(f"<h1 style='text-align: right; color: #10b981;'>💬 مساعد {st.session_state.chat_type}</h1>", unsafe_allow_html=True)
+    if st.button("⬅️ العودة"):
+        st.session_state.page = "home"
+        st.rerun()
