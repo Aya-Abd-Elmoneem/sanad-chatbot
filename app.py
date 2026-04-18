@@ -12,11 +12,9 @@ import re
 # =========================
 # CONFIG
 # =========================
-# Note: Ensure st.secrets["GOOGLE_API_KEY"] is set in your Streamlit Cloud settings
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 model = genai.GenerativeModel("models/gemini-flash-latest")
 
-# Set page config at the very top level
 st.set_page_config(page_title="SANAD AI Assistant", page_icon="🌾", layout="wide", initial_sidebar_state="collapsed")
 
 # =========================
@@ -29,7 +27,7 @@ if "chat_type" not in st.session_state:
     st.session_state.chat_type = None
 
 # =========================
-# PDF & VECTOR DB FUNCTIONS (Keeping your logic)
+# PDF & AUDIO FUNCTIONS (Keeping your logic)
 # =========================
 def get_pdf_text(pdf_docs):
     text = ""
@@ -37,8 +35,7 @@ def get_pdf_text(pdf_docs):
         reader = PdfReader(pdf)
         for page in reader.pages:
             page_text = page.extract_text()
-            if page_text:
-                text += page_text
+            if page_text: text += page_text
     return text
 
 def get_embeddings():
@@ -53,9 +50,6 @@ def load_db():
     embeddings = get_embeddings()
     return FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
 
-# =========================
-# AUDIO FUNCTIONS
-# =========================
 def clean_text_for_tts(text):
     text = re.sub(r"[.,:*()\-\n#]", " ", text)
     text = re.sub(r"\s+", " ", text)
@@ -66,6 +60,7 @@ def text_to_audio(text):
     clean_text = clean_text_for_tts(text)
     async def generate():
         communicate = edge_tts.Communicate(clean_text, voice="ar-EG-SalmaNeural")
+        await communicate.run() # Fixed: use run() for standard execution
         await communicate.save(audio_file)
     asyncio.run(generate())
     return audio_file
@@ -74,167 +69,168 @@ def autoplay_audio(file_path):
     with open(file_path, "rb") as f:
         audio_bytes = f.read()
         b64 = base64.b64encode(audio_bytes).decode()
-    st.markdown(f'<audio autoplay controls><source src="data:audio/mp3;base64,{b64}" type="audio/mp3"></audio>', unsafe_allow_html=True)
+    st.markdown(f'<audio autoplay><source src="data:audio/mp3;base64,{b64}" type="audio/mp3"></audio>', unsafe_allow_html=True)
 
 # =========================
-# HOME PAGE (PROFESSIONAL DESIGN)
+# HOME PAGE (PROFESSIONAL RTL DESIGN)
 # =========================
 def home_page():
-    # 1. Custom CSS for the "Winning Design"
+    # CSS لتحويل الواجهة للعربية وجعلها عصرية
     st.markdown("""
         <style>
-            /* Main Background and Text */
+            /* اتجاه النص من اليمين لليسار */
+            .main {
+                direction: rtl;
+                text-align: right;
+            }
+            
+            /* خلفية احترافية */
             .stApp {
-                background-color: #0F172A;
-                color: #F8FAFC;
+                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+                color: #ffffff;
             }
-            
-            /* Header Styling */
-            .main-header {
+
+            /* تصميم الهيدر */
+            .header-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
                 text-align: center;
-                padding: 40px 0;
-                background: radial-gradient(circle at top, #1E293B 0%, #0F172A 100%);
+                padding: 50px 0;
             }
-            .header-title {
-                font-size: 3.5rem;
+            .title-text {
+                font-size: 4rem;
                 font-weight: 800;
-                letter-spacing: -1px;
+                background: linear-gradient(90deg, #10b981, #34d399);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
                 margin-bottom: 10px;
-                color: #FFFFFF;
             }
-            .subtitle {
+            .sub-title {
                 font-size: 1.5rem;
-                color: #94A3B8;
-                margin-bottom: 40px;
+                color: #94a3b8;
             }
 
-            /* Card Styling */
-            div[data-testid="stVerticalBlock"] > div[style*="flex-direction: column;"] > div[data-testid="stVerticalBlock"] {
-                border: 1px solid #334155;
-                border-radius: 20px;
-                background: #1E293B;
-                padding: 40px 20px;
-                transition: transform 0.3s ease, border-color 0.3s ease;
+            /* تصميم البطاقات (Cards) */
+            [data-testid="stVerticalBlock"] > div > div > div[data-testid="stVerticalBlock"] {
+                background: rgba(30, 41, 59, 0.7);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 24px;
+                padding: 30px;
+                transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
                 text-align: center;
+                backdrop-filter: blur(10px);
             }
             
-            /* Icon and Text inside Cards */
-            .card-icon { font-size: 4rem; margin-bottom: 20px; }
-            .card-title { font-size: 1.4rem; font-weight: 700; color: #F1F5F9; margin-bottom: 10px; }
-            .card-desc { font-size: 1rem; color: #94A3B8; margin-bottom: 20px; height: 50px; }
+            [data-testid="stVerticalBlock"] > div > div > div[data-testid="stVerticalBlock"]:hover {
+                transform: translateY(-10px);
+                border-color: #10b981;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            }
 
-            /* Professional Button Styling inside Cards */
+            .card-icon { font-size: 5rem; margin-bottom: 20px; }
+            .card-title { font-size: 1.8rem; font-weight: 700; color: #ffffff; margin-bottom: 15px; }
+            .card-desc { font-size: 1.1rem; color: #94a3b8; margin-bottom: 30px; line-height: 1.6; }
+
+            /* تحسين شكل الأزرار */
             .stButton > button {
                 width: 100%;
+                background: linear-gradient(90deg, #10b981, #059669);
+                color: white;
+                border: none;
+                padding: 12px 0;
                 border-radius: 12px;
-                border: 1px solid #10B981;
-                background-color: transparent;
-                color: #10B981;
+                font-size: 1.2rem;
                 font-weight: 600;
-                padding: 10px 0;
                 transition: 0.3s;
             }
             .stButton > button:hover {
-                background-color: #10B981;
-                color: white;
-                transform: scale(1.02);
+                box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+                transform: scale(1.05);
             }
         </style>
     """, unsafe_allow_html=True)
 
-    # Header section
-    st.markdown('<div class="main-header">', unsafe_allow_html=True)
-    st.markdown('<h1 class="header-title">🌾 SANAD AI Assistant</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle">اختر القسم المناسب للبدء</p>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    # الهيدر
+    st.markdown("""
+        <div class="header-container">
+            <h1 class="title-text">🌾 SANAD AI Assistant</h1>
+            <p class="sub-title">مساعدك الذكي في عالم الزراعة والتمويل</p>
+            <p style="color:#64748b; margin-top:10px;">اختر القسم المناسب للبدء</p>
+        </div>
+    """, unsafe_allow_html=True)
 
-    # Cards Grid
+    # شبكة الأقسام
     col1, col2, col3 = st.columns(3)
 
     with col1:
         st.markdown('<div class="card-icon">🌱</div>', unsafe_allow_html=True)
-        st.markdown('<div class="card-title">تمويل المحاصيل الزراعية</div>', unsafe_allow_html=True)
-        st.markdown('<div class="card-desc">حلول ذكية لدعم إنتاج المحاصيل والمزارعين</div>', unsafe_allow_html=True)
+        st.markdown('<div class="card-title">تمويل المحاصيل</div>', unsafe_allow_html=True)
+        st.markdown('<div class="card-desc">حلول ذكية لدعم إنتاج المحاصيل والمزارعين والنمو المستدام</div>', unsafe_allow_html=True)
         if st.button("دخول القسم", key="btn_agri"):
             st.session_state.chat_type = "agriculture"
             st.session_state.page = "chat"
             st.rerun()
 
     with col2:
-        st.markdown('<div class="card-icon">📊</div>', unsafe_allow_html=True)
+        st.markdown('<div class="card-icon">📈</div>', unsafe_allow_html=True)
         st.markdown('<div class="card-title">التمويل والقروض</div>', unsafe_allow_html=True)
-        st.markdown('<div class="card-desc">استشارات ائتمانية وتسهيلات مالية للمشاريع</div>', unsafe_allow_html=True)
+        st.markdown('<div class="card-desc">استشارات ائتمانية وتسهيلات مالية مبتكرة لمشاريعك</div>', unsafe_allow_html=True)
         if st.button("دخول القسم", key="btn_finance"):
-            st.session_state.chat_type = "general" # Mapping to your existing system_prompt keys
+            st.session_state.chat_type = "general"
             st.session_state.page = "chat"
             st.rerun()
 
     with col3:
         st.markdown('<div class="card-icon">🐄</div>', unsafe_allow_html=True)
-        st.markdown('<div class="card-title">الثروة الحيوانية والدواجن</div>', unsafe_allow_html=True)
-        st.markdown('<div class="card-desc">دعم فني وتمويلي لمشاريع الإنتاج الحيواني</div>', unsafe_allow_html=True)
+        st.markdown('<div class="card-title">الثروة الحيوانية</div>', unsafe_allow_html=True)
+        st.markdown('<div class="card-desc">دعم فني وتمويلي متخصص لمشاريع الإنتاج الحيواني والداجني</div>', unsafe_allow_html=True)
         if st.button("دخول القسم", key="btn_livestock"):
             st.session_state.chat_type = "agriculture"
             st.session_state.page = "chat"
             st.rerun()
 
 # =========================
-# SIDEBAR PDF (Keeping your logic)
+# CHAT & SIDEBAR (Keeping your logic)
 # =========================
 def sidebar():
     with st.sidebar:
-        st.header("📂 Upload PDFs")
-        pdf_docs = st.file_uploader("Upload PDFs", accept_multiple_files=True)
-        if st.button("Process PDFs"):
+        st.header("📂 ملفات المعرفة")
+        pdf_docs = st.file_uploader("ارفع ملفات PDF الخاصة بالقسم", accept_multiple_files=True)
+        if st.button("معالجة الملفات"):
             if pdf_docs:
-                with st.spinner("Processing..."):
+                with st.spinner("جاري التحليل..."):
                     raw_text = get_pdf_text(pdf_docs)
                     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
                     chunks = splitter.split_text(raw_text)
                     create_vector_store(chunks)
-                st.success("Done ✅")
-            else:
-                st.warning("Please upload files")
+                st.success("تم التجهيز ✅")
+            else: st.warning("يرجى رفع ملفات أولاً")
 
-# =========================
-# CHAT PAGE (Keeping your logic)
-# =========================
 def chat_page():
-    st.title(f"💬 {st.session_state.chat_type.upper()} CHATBOT")
-
-    if st.button("⬅ Back to Home"):
+    st.markdown(f"<h1 style='text-align: right;'>💬 محادثة: {st.session_state.chat_type}</h1>", unsafe_allow_html=True)
+    
+    if st.button("⬅️ العودة للرئيسية"):
         st.session_state.page = "home"
         st.rerun()
 
-    question = st.text_input("Ask your question:")
+    question = st.chat_input("اسألني أي شيء عن هذا القسم...")
 
     if question:
-        try:
-            db = load_db()
-            docs = db.similarity_search(question)
-            context = "\n\n".join([d.page_content for d in docs])
-        except:
-            context = "No PDF context available."
+        st.chat_message("user").write(question)
+        with st.spinner("يفكر SANAD..."):
+            try:
+                db = load_db()
+                docs = db.similarity_search(question)
+                context = "\n\n".join([d.page_content for d in docs])
+            except: context = "لا يوجد سياق من الملفات حالياً."
 
-        system_prompt = {
-            "agriculture": "You are an agriculture expert AI assistant.",
-            "data": "You are a data science expert AI assistant.",
-            "general": "You are a helpful AI assistant."
-        }
-
-        prompt = f"""
-        {system_prompt.get(st.session_state.chat_type, "You are a helpful assistant.")}
-        Context: {context}
-        Question: {question}
-        Answer clearly and simply in Arabic:
-        """
-
-        response = model.generate_content(prompt)
-        st.success(response.text)
-
-        # AUDIO OUTPUT
-        audio_file = text_to_audio(response.text)
-        autoplay_audio(audio_file)
+            prompt = f"أجب باللغة العربية بوضوح: {question}\n\nالسياق المتاح: {context}"
+            response = model.generate_content(prompt)
+            
+            st.chat_message("assistant").write(response.text)
+            audio_file = text_to_audio(response.text)
+            autoplay_audio(audio_file)
 
 # =========================
 # ROUTING
