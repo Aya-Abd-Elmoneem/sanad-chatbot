@@ -115,7 +115,7 @@ def home_page():
     st.markdown("""
         <h1 style='text-align:center; color:#2E8B57;'>🌾 SANAD AI Assistant</h1>
         <p style='text-align:center; font-size:18px;'>
-        Choose your AI chatbot
+        اختار القسم المناسب 
         </p>
     """, unsafe_allow_html=True)
 
@@ -148,15 +148,15 @@ def home_page():
     with col2:
         st.markdown("<div class='center'>", unsafe_allow_html=True)
 
-        if st.button("🌱 Agriculture AI"):
+        if st.button("🌱 قسم تمويل المحاصيل الزراعيه"):
             st.session_state.page = "chat"
             st.session_state.chat_type = "agriculture"
 
-        if st.button("📊 Data Science AI"):
+        if st.button("📊 قسم التمويل و القروض"):
             st.session_state.page = "chat"
             st.session_state.chat_type = "data"
 
-        if st.button("🤖 General AI"):
+        if st.button("🤖 قسم الثروة الحيوانبه و الدواجن"):
             st.session_state.page = "chat"
             st.session_state.chat_type = "general"
 
