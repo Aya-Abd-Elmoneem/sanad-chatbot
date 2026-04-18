@@ -7,42 +7,36 @@ from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
 # =========================
-# Configure API Key (SAFE)
+# API KEY
 # =========================
-
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 
-st.write("Available Models:")
-
-for m in genai.list_models():
-    st.write(m.name, m.supported_generation_methods)
-
 # =========================
-# Load Gemini Model
+# Gemini Model (WORKING)
 # =========================
-model = genai.GenerativeModel("gemini-1.0-pro")
+model = genai.GenerativeModel("models/gemini-flash-latest")
 
 # =========================
 # Streamlit UI
 # =========================
 st.set_page_config(page_title="SAND AI Assistant", layout="wide")
-st.title("🌾 SAND AI Assistant")
+st.title("🌾 SAND AI Assistant (PDF Chatbot)")
 
 # =========================
-# Read PDFs
+# Read PDF Text
 # =========================
 def get_pdf_text(pdf_docs):
     text = ""
     for pdf in pdf_docs:
         reader = PdfReader(pdf)
         for page in reader.pages:
-            content = page.extract_text()
-            if content:
-                text += content
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text
     return text
 
 # =========================
-# Embeddings
+# Embeddings (Stable)
 # =========================
 def get_embeddings():
     return HuggingFaceEmbeddings(
@@ -50,7 +44,7 @@ def get_embeddings():
     )
 
 # =========================
-# Vector Store
+# Create FAISS Index
 # =========================
 def create_vector_store(text_chunks):
     embeddings = get_embeddings()
@@ -58,19 +52,19 @@ def create_vector_store(text_chunks):
     db.save_local("faiss_index")
 
 # =========================
-# Sidebar
+# Sidebar Upload
 # =========================
 with st.sidebar:
     st.header("📂 Upload PDFs")
 
     pdf_docs = st.file_uploader(
-        "Upload your PDF files",
+        "Upload PDF files",
         accept_multiple_files=True
     )
 
-    if st.button("Process"):
+    if st.button("Process PDFs"):
         if pdf_docs:
-            with st.spinner("Processing..."):
+            with st.spinner("Reading PDFs..."):
                 raw_text = get_pdf_text(pdf_docs)
 
                 splitter = RecursiveCharacterTextSplitter(
@@ -81,9 +75,9 @@ with st.sidebar:
                 chunks = splitter.split_text(raw_text)
                 create_vector_store(chunks)
 
-            st.success("Done ✅")
+            st.success("Processing completed ✅")
         else:
-            st.warning("Upload files first")
+            st.warning("Please upload PDF files first")
 
 # =========================
 # Chat Section
@@ -104,7 +98,7 @@ if question:
     context = "\n\n".join([doc.page_content for doc in docs])
 
     prompt = f"""
-You are "SAND", an Egyptian assistant.
+You are "SAND", an Egyptian AI assistant.
 
 Answer ONLY using the context below.
 
