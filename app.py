@@ -19,8 +19,8 @@ model = genai.GenerativeModel("models/gemini-flash-latest")
 # =========================
 # Streamlit UI
 # =========================
-st.set_page_config(page_title="SAND AI Assistant", layout="wide")
-st.title("🌾 SAND AI Assistant (PDF Chatbot)")
+st.set_page_config(page_title="SANAD AI Assistant", layout="wide")
+st.title("🌾 SANAD AI Assistant")
 
 # =========================
 # Read PDF Text
@@ -98,7 +98,7 @@ if question:
     context = "\n\n".join([doc.page_content for doc in docs])
 
     prompt = f"""
-You are "SAND", an Egyptian AI assistant.
+You are "SANAD", an Egyptian AI assistant.
 
 Answer ONLY using the context below.
 
