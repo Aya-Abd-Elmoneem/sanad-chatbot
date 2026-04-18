@@ -86,124 +86,99 @@ def home_page():
 
             .main-header {
                 text-align: center;
-                padding: 60px 0 20px 0;
+                padding: 40px 0;
             }
             
             .title-text {
-                font-size: 4rem;
+                font-size: 3.5rem;
                 font-weight: 900;
                 background: linear-gradient(90deg, #10b981, #34d399, #10b981);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
-                margin-bottom: 10px;
-                filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.2));
             }
 
-            .tagline {
-                color: #94a3b8;
-                font-size: 1.3rem;
-                margin-bottom: 40px;
-            }
-
-            /* Glassmorphism Card Wrapper */
-            .card-style {
-                background: rgba(30, 41, 59, 0.4);
-                border: 1px solid rgba(255, 255, 255, 0.05);
-                border-radius: 25px;
-                padding: 40px 20px;
-                text-align: center;
-                backdrop-filter: blur(10px);
-                transition: 0.4s ease;
-                min-height: 380px;
+            [data-testid="stColumn"] {
+                position: relative;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
             }
 
-            .card-style:hover {
-                transform: translateY(-10px);
-                border-color: #10b981;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            }
-
-            .icon-circle {
-                background: rgba(16, 185, 129, 0.1);
-                width: 90px;
-                height: 90px;
-                border-radius: 50%;
+            .card-ui {
+                background: rgba(30, 41, 59, 0.4);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 20px;
+                padding: 30px 15px;
+                text-align: center;
+                backdrop-filter: blur(10px);
+                height: 400px;
+                width: 100%;
                 display: flex;
+                flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                font-size: 3.5rem;
-                margin-bottom: 20px;
+                transition: 0.3s ease;
+                z-index: 1;
             }
 
-            .card-title {
-                font-size: 1.6rem;
-                font-weight: 700;
-                color: #ffffff;
-                margin-bottom: 15px;
-            }
-
-            .card-desc {
-                font-size: 1rem;
-                color: #94a3b8;
-                line-height: 1.6;
-                margin-bottom: 25px;
-            }
-
-            /* Custom Button */
+            /* --- التمركز التام للزر في منتصف البطاقة --- */
             .stButton > button {
-                width: 100%;
-                background: linear-gradient(90deg, #10b981, #059669) !important;
-                color: white !important;
+                position: absolute !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important; /* لضمان التمركز في الوسط تماماً */
+                width: 100% !important;
+                height: 400px !important;
+                background: transparent !important;
                 border: none !important;
-                padding: 12px 0 !important;
-                border-radius: 12px !important;
-                font-weight: 700 !important;
-                transition: 0.3s !important;
+                color: transparent !important;
+                z-index: 5 !important;
+                cursor: pointer;
             }
-            
-            .stButton > button:hover {
-                transform: scale(1.03) !important;
-                box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3) !important;
+
+            [data-testid="stColumn"]:hover .card-ui {
+                border-color: #10b981;
+                background: rgba(30, 41, 59, 0.6);
+                transform: translateY(-8px);
+                box-shadow: 0 10px 30px rgba(16, 185, 129, 0.2);
             }
+
+            .icon-box { font-size: 4.5rem; margin-bottom: 20px; }
+            .card-title { font-size: 1.6rem; font-weight: 700; color: white; margin-bottom: 10px; }
+            .card-desc { font-size: 1rem; color: #94a3b8; line-height: 1.5; }
+
+            .stButton { margin: 0 !important; padding: 0 !important; }
         </style>
     """, unsafe_allow_html=True)
 
     st.markdown("""
         <div class="main-header">
             <h1 class="title-text">SANAD AI Assistant</h1>
-            <p class="tagline">مساعدك الذكي المدعوم بالذكاء الاصطناعي في القطاع الزراعي</p>
+            <p style="color: #94a3b8; font-size: 1.2rem;">مساعدك الذكي في عالم الزراعة والتمويل</p>
         </div>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns(3, gap="medium")
+    col1, col2, col3 = st.columns(3, gap="large")
 
-    with col1:
-        st.markdown('<div class="card-style"><div class="icon-circle">🌱</div><div class="card-title">تمويل المحاصيل</div><div class="card-desc">تحليل متقدم لفرص تمويل المحاصيل الزراعية وتقديم حلول مخصصة للمزارعين.</div>', unsafe_allow_html=True)
-        if st.button("دخول القسم", key="btn_agri"):
-            st.session_state.chat_type = "agriculture"
-            st.session_state.page = "chat"
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+    def create_card(col, icon, title, desc, key, chat_type):
+        with col:
+            st.markdown(f"""
+                <div class="card-ui">
+                    <div class="icon-box">{icon}</div>
+                    <div class="card-title">{title}</div>
+                    <div class="card-desc">{desc}</div>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            if st.button("", key=key):
+                st.session_state.chat_type = chat_type
+                st.session_state.page = "chat"
+                st.rerun()
 
-    with col2:
-        st.markdown('<div class="card-style"><div class="icon-circle">📊</div><div class="card-title">التمويل والقروض</div><div class="card-desc">استكشاف الخيارات الائتمانية والتمويلية المتاحة لدعم المشاريع والنمو المالي.</div>', unsafe_allow_html=True)
-        if st.button("دخول القسم", key="btn_finance"):
-            st.session_state.chat_type = "general"
-            st.session_state.page = "chat"
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with col3:
-        st.markdown('<div class="card-style"><div class="icon-circle">🐄</div><div class="card-title">الثروة الحيوانية</div><div class="card-desc">دعم شامل لمشاريع الإنتاج الحيواني والداجني عبر تحليلات دقيقة واستشارات فورية.</div>', unsafe_allow_html=True)
-        if st.button("دخول القسم", key="btn_livestock"):
-            st.session_state.chat_type = "agriculture"
-            st.session_state.page = "chat"
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+    create_card(col1, "🌱", "تمويل المحاصيل", "حلول تمويلية ذكية للمزارعين ودعم الإنتاج المستدام.", "crop_btn", "agriculture")
+    create_card(col2, "📈", "التمويل والقروض", "استكشف خيارات القروض والتسهيلات الائتمانية لمشاريعك.", "finance_btn", "general")
+    create_card(col3, "🐄", "الثروة الحيوانية", "دعم فني وتمويلي لمشاريع الإنتاج الحيواني والداجني.", "livestock_btn", "agriculture")
 
 # =========================
 # 5. CHAT PAGE & SIDEBAR
