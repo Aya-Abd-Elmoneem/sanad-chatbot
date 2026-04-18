@@ -57,6 +57,7 @@ def load_db():
 
 def text_to_audio(text):
     audio_file = "response.mp3"
+    # تنظيف النص من الرموز لضمان جودة الصوت
     clean_text = re.sub(r"[.,:*()\-\n#]", " ", text)
     async def generate():
         communicate = edge_tts.Communicate(clean_text, voice="ar-EG-SalmaNeural")
@@ -71,12 +72,10 @@ def autoplay_audio(file_path):
     st.markdown(f'<audio autoplay><source src="data:audio/mp3;base64,{b64}" type="audio/mp3"></audio>', unsafe_allow_html=True)
 
 # =========================
-# 4. IMPROVED HOME PAGE UI
-# =========================
-# =========================
-# 4. IMPROVED HOME PAGE UI (CLICKABLE CARDS)
+# 4. HOME PAGE (CLICKABLE CARDS)
 # =========================
 def home_page():
+    # CSS لتحويل البطاقة بالكامل لزر قابل للنقر وإخفاء النص الداخلي للزر
     st.markdown("""
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
@@ -108,8 +107,7 @@ def home_page():
                 margin-bottom: 40px;
             }
 
-            /* --- CLICKABLE CARD LOGIC --- */
-            /* This targets the Streamlit button container and makes it look like a card */
+            /* تصميم الحاوية التي تضم الزر والمحتوى */
             div[data-testid="stColumn"] div[data-testid="stVerticalBlock"] > div:has(button) {
                 background: rgba(30, 41, 59, 0.4);
                 border: 1px solid rgba(255, 255, 255, 0.05);
@@ -118,15 +116,16 @@ def home_page():
                 backdrop-filter: blur(10px);
                 transition: 0.4s ease;
                 min-height: 380px;
+                position: relative;
             }
 
             div[data-testid="stColumn"] div[data-testid="stVerticalBlock"] > div:has(button):hover {
                 transform: translateY(-10px);
                 border-color: #10b981;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+                box-shadow: 0 20px 40px rgba(0,0,0,0.5);
             }
 
-            /* This makes the actual button invisible but spans the whole card */
+            /* جعل زر Streamlit شفافاً تماماً ويغطي كامل مساحة البطاقة */
             .stButton > button {
                 width: 100% !important;
                 height: 380px !important;
@@ -139,8 +138,15 @@ def home_page():
                 z-index: 10;
                 cursor: pointer;
             }
+            
+            .stButton > button:hover, .stButton > button:active, .stButton > button:focus {
+                background: transparent !important;
+                color: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
 
-            /* Content layer (icons/text) sits under the invisible button */
+            /* طبقة المحتوى البصري (أيقونات ونصوص) */
             .card-content {
                 display: flex;
                 flex-direction: column;
@@ -148,7 +154,7 @@ def home_page():
                 justify-content: center;
                 text-align: center;
                 padding: 40px 20px;
-                pointer-events: none; /* Allows click to pass through to the button */
+                pointer-events: none; /* يسمح للنقرة بالمرور للزر الشفاف */
             }
 
             .icon-circle {
@@ -161,39 +167,44 @@ def home_page():
                 justify-content: center;
                 font-size: 3.5rem;
                 margin-bottom: 20px;
+                transition: 0.3s ease;
             }
 
             .card-title {
-                font-size: 1.6rem;
+                font-size: 1.7rem;
                 font-weight: 700;
                 color: #ffffff;
                 margin-bottom: 15px;
             }
 
             .card-desc {
-                font-size: 1rem;
+                font-size: 1.1rem;
                 color: #94a3b8;
                 line-height: 1.6;
             }
+            
+            /* إخفاء القوائم الافتراضية لستريمليت */
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
         </style>
     """, unsafe_allow_html=True)
 
     st.markdown("""
         <div class="main-header">
             <h1 class="title-text">SANAD AI Assistant</h1>
-            <p class="tagline">مساعدك الذكي المدعوم بالذكاء الاصطناعي في القطاع الزراعي</p>
+            <p class="tagline">مساعدك الذكي في عالم الزراعة والتمويل</p>
         </div>
     """, unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns(3, gap="medium")
 
     with col1:
-        # Invisible button triggers the action
-        if st.button("Agri", key="btn_agri_hidden"):
+        # الزر الشفاف الذي ينفذ الكود
+        if st.button("Agri", key="btn_agri_card"):
             st.session_state.chat_type = "agriculture"
             st.session_state.page = "chat"
             st.rerun()
-        # Visual content layer
+        # المحتوى البصري للبطاقة
         st.markdown("""
             <div class="card-content">
                 <div class="icon-circle">🌱</div>
@@ -203,20 +214,20 @@ def home_page():
         """, unsafe_allow_html=True)
 
     with col2:
-        if st.button("Finance", key="btn_finance_hidden"):
+        if st.button("Finance", key="btn_finance_card"):
             st.session_state.chat_type = "general"
             st.session_state.page = "chat"
             st.rerun()
         st.markdown("""
             <div class="card-content">
-                <div class="icon-circle">📊</div>
+                <div class="icon-circle">📈</div>
                 <div class="card-title">التمويل والقروض</div>
                 <div class="card-desc">استكشاف الخيارات الائتمانية والتمويلية المتاحة لدعم المشاريع والنمو المالي.</div>
             </div>
         """, unsafe_allow_html=True)
 
     with col3:
-        if st.button("Livestock", key="btn_livestock_hidden"):
+        if st.button("Livestock", key="btn_livestock_card"):
             st.session_state.chat_type = "agriculture"
             st.session_state.page = "chat"
             st.rerun()
@@ -227,39 +238,6 @@ def home_page():
                 <div class="card-desc">دعم شامل لمشاريع الإنتاج الحيواني والداجني عبر تحليلات دقيقة واستشارات فورية.</div>
             </div>
         """, unsafe_allow_html=True)
-
-    st.markdown("""
-        <div class="main-header">
-            <h1 class="title-text">SANAD AI Assistant</h1>
-            <p class="tagline">مساعدك الذكي المدعوم بالذكاء الاصطناعي في القطاع الزراعي</p>
-        </div>
-    """, unsafe_allow_html=True)
-
-    col1, col2, col3 = st.columns(3, gap="medium")
-
-    with col1:
-        st.markdown('<div class="card-style"><div class="icon-circle">🌱</div><div class="card-title">تمويل المحاصيل</div><div class="card-desc">تحليل متقدم لفرص تمويل المحاصيل الزراعية وتقديم حلول مخصصة للمزارعين.</div>', unsafe_allow_html=True)
-        if st.button("دخول القسم", key="btn_agri"):
-            st.session_state.chat_type = "agriculture"
-            st.session_state.page = "chat"
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with col2:
-        st.markdown('<div class="card-style"><div class="icon-circle">📊</div><div class="card-title">التمويل والقروض</div><div class="card-desc">استكشاف الخيارات الائتمانية والتمويلية المتاحة لدعم المشاريع والنمو المالي.</div>', unsafe_allow_html=True)
-        if st.button("دخول القسم", key="btn_finance"):
-            st.session_state.chat_type = "general"
-            st.session_state.page = "chat"
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with col3:
-        st.markdown('<div class="card-style"><div class="icon-circle">🐄</div><div class="card-title">الثروة الحيوانية</div><div class="card-desc">دعم شامل لمشاريع الإنتاج الحيواني والداجني عبر تحليلات دقيقة واستشارات فورية.</div>', unsafe_allow_html=True)
-        if st.button("دخول القسم", key="btn_livestock"):
-            st.session_state.chat_type = "agriculture"
-            st.session_state.page = "chat"
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================
 # 5. CHAT PAGE & SIDEBAR
@@ -288,7 +266,7 @@ def chat_page():
 
     st.divider()
 
-    # Chat interface
+    # واجهة المحادثة
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
@@ -296,27 +274,27 @@ def chat_page():
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    if prompt := st.chat_input("اسأل SANAD..."):
+    if prompt := st.chat_input("اسأل مساعد SANAD..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
         with st.chat_message("assistant"):
-            with st.spinner("جاري التفكير..."):
+            with st.spinner("جاري استخلاص الإجابة..."):
                 try:
                     db = load_db()
                     docs = db.similarity_search(prompt)
                     context = "\n\n".join([d.page_content for d in docs])
                 except:
-                    context = "لا توجد ملفات مرفوعة لهذا القسم."
+                    context = "لا توجد ملفات مرفوعة حالياً."
 
-                sys_msg = "أنت خبير ذكاء اصطناعي في مجال الزراعة والتمويل. أجب باللغة العربية بأسلوب مهني ومختصر."
-                full_query = f"{sys_msg}\n\nالسياق: {context}\n\nالسؤال: {prompt}"
+                sys_prompt = "أنت خبير تقني في الزراعة والتمويل. أجب باللغة العربية بأسلوب واضح ومفيد."
+                full_query = f"{sys_prompt}\n\nالسياق: {context}\n\nالسؤال: {prompt}"
                 
                 response = model.generate_content(full_query)
                 st.markdown(response.text)
                 
-                # TTS
+                # توليد وتشغيل الصوت تلقائياً
                 audio_path = text_to_audio(response.text)
                 autoplay_audio(audio_path)
                 
