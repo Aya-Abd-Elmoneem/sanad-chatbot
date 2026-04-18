@@ -6,5 +6,3 @@ langchain-community
 langchain-text-splitters
 sentence-transformers
 google-generativeai
-torch
-torchvision
