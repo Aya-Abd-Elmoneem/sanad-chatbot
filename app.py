@@ -112,38 +112,44 @@ def home_page():
     st.markdown("""
         <style>
         .stButton>button {
-            width: 320px;
-            height: 75px;
-            font-size: 20px;
+            width: 250px;
+            height: 80px;
+            font-size: 18px;
             border-radius: 15px;
             background-color: #2E8B57;
             color: white;
             font-weight: bold;
-            display: block;
-            margin: 15px auto;
         }
 
         .stButton>button:hover {
             background-color: #256b45;
         }
+
+        div.row-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 40px;
+        }
         </style>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([1,2,1])
+    col1, col2, col3 = st.columns(3)
 
-    with col2:
+    with col1:
         if st.button("🌱 Agriculture AI"):
             st.session_state.page = "chat"
             st.session_state.chat_type = "agriculture"
 
+    with col2:
         if st.button("📊 Data Science AI"):
             st.session_state.page = "chat"
             st.session_state.chat_type = "data"
 
+    with col3:
         if st.button("🤖 General AI"):
             st.session_state.page = "chat"
             st.session_state.chat_type = "general"
-
 
 # =========================
 # SIDEBAR PDF
