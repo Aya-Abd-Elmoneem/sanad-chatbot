@@ -13,7 +13,7 @@ import re
 # CONFIG
 # =========================
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-model = genai.GenerativeModel("models/gemini-flash-latest")
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 st.set_page_config(page_title="SANAD AI", layout="wide")
 
@@ -112,52 +112,55 @@ def autoplay_audio(file_path):
 # HOME PAGE (IMPROVED UI)
 # =========================
 def home_page():
-  st.markdown("""
-    <style>
-    .stButton>button {
-        width: 320px;
-        height: 90px;
-        font-size: 22px;
-        border-radius: 18px;
-        background: linear-gradient(135deg, #1f7a4a, #2E8B57);
-        color: white;
-        font-weight: bold;
-        border: none;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-        transition: all 0.3s ease;
-    }
+    st.markdown("""
+        <h1 style='text-align:center; color:#2E8B57;'>🌾 SANAD AI Assistant</h1>
+        <p style='text-align:center; font-size:18px;'>
+        Choose your AI chatbot
+        </p>
+    """, unsafe_allow_html=True)
 
-    .stButton>button:hover {
-        background: linear-gradient(135deg, #256b45, #1f5c3a);
-        transform: scale(1.06);
-        box-shadow: 0 12px 30px rgba(46,139,87,0.4);
-    }
+    st.markdown("""
+        <style>
+        .stButton>button {
+            width: 240px;
+            height: 85px;
+            font-size: 18px;
+            border-radius: 15px;
+            background-color: #2E8B57;
+            color: white;
+            font-weight: bold;
+            margin: 10px;
+        }
 
-    .stButton>button:active {
-        transform: scale(0.98);
-    }
-    </style>
-""", unsafe_allow_html=True)
+        .stButton>button:hover {
+            background-color: #256b45;
+        }
 
-    st.markdown("<div class='title'>🌾 SANAD AI Assistant</div>", unsafe_allow_html=True)
-    st.markdown("<div class='subtitle'>Choose your AI assistant</div>", unsafe_allow_html=True)
+        .center {
+            display: flex;
+            justify-content: center;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns([1,2,1])
 
-    with col1:
+    with col2:
+        st.markdown("<div class='center'>", unsafe_allow_html=True)
+
         if st.button("🌱 Agriculture AI"):
             st.session_state.page = "chat"
             st.session_state.chat_type = "agriculture"
 
-    with col2:
         if st.button("📊 Data Science AI"):
             st.session_state.page = "chat"
             st.session_state.chat_type = "data"
 
-    with col3:
         if st.button("🤖 General AI"):
             st.session_state.page = "chat"
             st.session_state.chat_type = "general"
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
 # =========================
