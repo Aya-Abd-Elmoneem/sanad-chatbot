@@ -4,15 +4,16 @@ from PyPDF2 import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from gtts import gTTS
 import base64
 import os
+import asyncio
+import edge_tts
 
 # =========================
 # CONFIG
 # =========================
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-model = genai.GenerativeModel("models/gemini-flash-latest")
+model = genai.GenerativeModel("models/gemini-1.5-flash")
 
 st.set_page_config(page_title="SANAD AI", layout="wide")
 
@@ -68,12 +69,19 @@ def load_db():
 
 
 # =========================
-# TEXT → AUDIO
+# TEXT → AUDIO (EGYPTIAN VOICE)
 # =========================
 def text_to_audio(text):
-    tts = gTTS(text=text, lang="en")
     audio_file = "response.mp3"
-    tts.save(audio_file)
+
+    async def generate():
+        communicate = edge_tts.Communicate(
+            text,
+            voice="ar-EG-SalmaNeural"
+        )
+        await communicate.save(audio_file)
+
+    asyncio.run(generate())
     return audio_file
 
 
@@ -91,39 +99,54 @@ def autoplay_audio(file_path):
 
 
 # =========================
-# HOME PAGE
+# HOME PAGE (UPDATED UI)
 # =========================
 def home_page():
-    st.markdown(
-        """
+    st.markdown("""
         <h1 style='text-align:center; color:#2E8B57;'>🌾 SANAD AI Assistant</h1>
         <p style='text-align:center; font-size:18px;'>
         Choose your AI chatbot
         </p>
-        """,
-        unsafe_allow_html=True
-    )
+    """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns(3)
+    st.markdown("""
+        <style>
+        .stButton>button {
+            width: 320px;
+            height: 75px;
+            font-size: 20px;
+            border-radius: 15px;
+            background-color: #2E8B57;
+            color: white;
+            font-weight: bold;
+            display: block;
+            margin: 15px auto;
+        }
 
-    with col1:
+        .stButton>button:hover {
+            background-color: #256b45;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1,2,1])
+
+    with col2:
         if st.button("🌱 Agriculture AI"):
             st.session_state.page = "chat"
             st.session_state.chat_type = "agriculture"
 
-    with col2:
         if st.button("📊 Data Science AI"):
             st.session_state.page = "chat"
             st.session_state.chat_type = "data"
 
-    with col3:
         if st.button("🤖 General AI"):
             st.session_state.page = "chat"
             st.session_state.chat_type = "general"
 
 
 # =========================
-# SIDEBAR PDF UPLOAD
+# SIDEBAR PDF
 # =========================
 def sidebar():
     with st.sidebar:
@@ -184,15 +207,14 @@ Context:
 Question:
 {question}
 
-Answer clearly and concisely:
+Answer in a clear, simple way:
 """
 
         response = model.generate_content(prompt)
 
-        # 📝 TEXT OUTPUT
         st.success(response.text)
 
-        # 🔊 AUDIO OUTPUT
+        # AUDIO (Egyptian)
         audio_file = text_to_audio(response.text)
         autoplay_audio(audio_file)
 
