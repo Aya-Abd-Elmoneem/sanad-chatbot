@@ -9,7 +9,13 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 # =========================
 # Configure API Key (SAFE)
 # =========================
+
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+
+st.write("Available Models:")
+
+for m in genai.list_models():
+    st.write(m.name, m.supported_generation_methods)
 
 # =========================
 # Load Gemini Model
