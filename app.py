@@ -113,54 +113,199 @@ def autoplay_audio(file_path):
 # =========================
 def home_page():
     st.markdown("""
-        <h1 style='text-align:center; color:#2E8B57;'>🌾 SANAD AI Assistant</h1>
-        <p style='text-align:center; font-size:18px;'>
-        اختار القسم المناسب 
-        </p>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""
-        <style>
-        .stButton>button {
-            width: 240px;
-            height: 85px;
-            font-size: 18px;
-            border-radius: 15px;
-            background-color: #2E8B57;
-            color: white;
-            font-weight: bold;
-            margin: 10px;
-        }
-
-        .stButton>button:hover {
-            background-color: #256b45;
-        }
-
-        .center {
+    <style>
+        .browser-chrome {
+            background-color: #3C4043;
+            color: #E8EAED;
+            padding: 10px 15px;
+            font-family: sans-serif;
             display: flex;
-            justify-content: center;
+            align-items: center;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
         }
-        </style>
-    """, unsafe_allow_html=True)
+        .browser-tab {
+            background-color: #202124;
+            color: #E8EAED;
+            padding: 8px 12px;
+            border-radius: 8px 8px 0 0;
+            margin-right: 10px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+        .browser-tab-icon {
+            margin-right: 6px;
+        }
+        .browser-address-bar {
+            background-color: #F1F3F4;
+            color: #202124;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .browser-address-text {
+            color: #606468;
+        }
+        .browser-content {
+            background-color: #202124; /* Main browser window background */
+            padding: 20px;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            font-family: sans-serif;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([1,2,1])
+# Simulate the Chrome window top section
+st.markdown("""
+    <div class="browser-chrome">
+        <div class="browser-tab">
+            <span class="browser-tab-icon">🌾</span>
+            <span>SANAD AI - Streamlit</span>
+        </div>
+        <div style="flex-grow: 1;"></div>
+    </div>
+    <div class="browser-chrome" style="background-color: #E8EAED; color: #606468; padding: 6px 15px;">
+        <div class="browser-address-bar">
+            <span>🌾 SANAD-AIAssistant</span>
+            <span class="browser-address-text">| https://sanad-ai-assistant.streamlit.app</span>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
 
-    with col2:
-        st.markdown("<div class='center'>", unsafe_allow_html=True)
+# 3. Inject CSS for main app styling and card appearance
+# We use custom classes to control margins, borders, padding, and text centering.
+st.markdown("""
+    <style>
+        .block-container {
+            padding: 2rem 5rem 10rem; /* Add outer padding */
+        }
+        
+        .main-container {
+            background-color: #202124;
+            color: #E8EAED;
+            font-family: sans-serif;
+        }
 
-        if st.button("🌱 قسم تمويل المحاصيل الزراعيه"):
-            st.session_state.page = "chat"
-            st.session_state.chat_type = "agriculture"
+        .main-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
 
-        if st.button("📊 قسم التمويل و القروض"):
-            st.session_state.page = "chat"
-            st.session_state.chat_type = "data"
+        .header-top {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 0.5rem;
+        }
 
-        if st.button("🤖 قسم الثروة الحيوانبه و الدواجن"):
-            st.session_state.page = "chat"
-            st.session_state.chat_type = "general"
+        .logo-emoji {
+            font-size: 5rem;
+        }
 
-        st.markdown("</div>", unsafe_allow_html=True)
+        .header-title {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Card container styling */
+        .department-container {
+            border: 2px solid #3C4043;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 10px;
+            text-align: center;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .dept-icon {
+            font-size: 6rem;
+            margin-bottom: 20px;
+        }
+
+        .dept-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .dept-description {
+            font-size: 1.2rem;
+            text-align: center;
+            color: #BDC1C6;
+        }
+        
+        /* Ensure columns are evenly spaced */
+        .css-1r6slb0 {
+            gap: 1.5rem;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# 4. Main App Content - Inside simulated browser content
+with st.container(css_class="browser-content"):
+    
+    # 5. Header Section
+    with st.container(css_class="main-header"):
+        st.markdown("""
+            <div class="header-top">
+                <span class="logo-emoji">🌾</span>
+                <span class="header-title">SANAD AI Assistant</span>
+            </div>
+            <div class="subtitle">اختر القسم المناسب</div>
+        """, unsafe_allow_html=True)
+
+    # 6. Grid of Departments
+    with st.container():
+        # Create three columns
+        col1, col2, col3 = st.columns(3)
+
+        # Department 1: Crop Financing
+        with col1:
+            st.markdown("""
+                <div class="department-container">
+                    <div class="dept-icon">🌱</div>
+                    <div class="dept-title">قسم تمويل المحاصيل الزراعية</div>
+                    <div class="dept-description">تقديم حلول تمويلية ذكية للمزارع.</div>
+                </div>
+            """, unsafe_allow_html=True)
+
+        # Department 2: Finance and Loans
+        with col2:
+            st.markdown("""
+                <div class="department-container">
+                    <div class="dept-icon">📈💰</div>
+                    <div class="dept-title">قسم التمويل والقروض</div>
+                    <div class="dept-description">استكشف خيارات القروض والتسهيلات الائتمانية.</div>
+                </div>
+            """, unsafe_allow_html=True)
+
+        # Department 3: Livestock and Poultry
+        with col3:
+            st.markdown("""
+                <div class="department-container">
+                    <div class="dept-icon">🐄🐔</div>
+                    <div class="dept-title">قسم الثروة الحيوانية والدواجن</div>
+                    <div class="dept-description">دعم مخصص لمشاريع الإنتاج الحيواني والداجني.</div>
+                </div>
+            """, unsafe_allow_html=True)
 
 
 # =========================
