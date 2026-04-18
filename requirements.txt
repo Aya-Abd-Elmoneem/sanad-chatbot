@@ -3,6 +3,7 @@ google-generativeai
 PyPDF2
 langchain
 langchain-community
-faiss-cpu
 sentence-transformers
-gtts
+faiss-cpu
+gTTS
+edge-tts
