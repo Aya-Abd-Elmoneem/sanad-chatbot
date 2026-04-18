@@ -73,6 +73,9 @@ def autoplay_audio(file_path):
 # =========================
 # 4. IMPROVED HOME PAGE UI
 # =========================
+# =========================
+# 4. IMPROVED HOME PAGE UI (CLICKABLE CARDS)
+# =========================
 def home_page():
     st.markdown("""
         <style>
@@ -105,26 +108,47 @@ def home_page():
                 margin-bottom: 40px;
             }
 
-            /* Glassmorphism Card Wrapper */
-            .card-style {
+            /* --- CLICKABLE CARD LOGIC --- */
+            /* This targets the Streamlit button container and makes it look like a card */
+            div[data-testid="stColumn"] div[data-testid="stVerticalBlock"] > div:has(button) {
                 background: rgba(30, 41, 59, 0.4);
                 border: 1px solid rgba(255, 255, 255, 0.05);
                 border-radius: 25px;
-                padding: 40px 20px;
-                text-align: center;
+                padding: 0px !important;
                 backdrop-filter: blur(10px);
                 transition: 0.4s ease;
                 min-height: 380px;
+            }
+
+            div[data-testid="stColumn"] div[data-testid="stVerticalBlock"] > div:has(button):hover {
+                transform: translateY(-10px);
+                border-color: #10b981;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            }
+
+            /* This makes the actual button invisible but spans the whole card */
+            .stButton > button {
+                width: 100% !important;
+                height: 380px !important;
+                background: transparent !important;
+                border: none !important;
+                color: transparent !important;
+                position: absolute !important;
+                top: 0;
+                left: 0;
+                z-index: 10;
+                cursor: pointer;
+            }
+
+            /* Content layer (icons/text) sits under the invisible button */
+            .card-content {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-            }
-
-            .card-style:hover {
-                transform: translateY(-10px);
-                border-color: #10b981;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+                text-align: center;
+                padding: 40px 20px;
+                pointer-events: none; /* Allows click to pass through to the button */
             }
 
             .icon-circle {
@@ -150,27 +174,59 @@ def home_page():
                 font-size: 1rem;
                 color: #94a3b8;
                 line-height: 1.6;
-                margin-bottom: 25px;
-            }
-
-            /* Custom Button */
-            .stButton > button {
-                width: 100%;
-                background: linear-gradient(90deg, #10b981, #059669) !important;
-                color: white !important;
-                border: none !important;
-                padding: 12px 0 !important;
-                border-radius: 12px !important;
-                font-weight: 700 !important;
-                transition: 0.3s !important;
-            }
-            
-            .stButton > button:hover {
-                transform: scale(1.03) !important;
-                box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3) !important;
             }
         </style>
     """, unsafe_allow_html=True)
+
+    st.markdown("""
+        <div class="main-header">
+            <h1 class="title-text">SANAD AI Assistant</h1>
+            <p class="tagline">مساعدك الذكي المدعوم بالذكاء الاصطناعي في القطاع الزراعي</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns(3, gap="medium")
+
+    with col1:
+        # Invisible button triggers the action
+        if st.button("Agri", key="btn_agri_hidden"):
+            st.session_state.chat_type = "agriculture"
+            st.session_state.page = "chat"
+            st.rerun()
+        # Visual content layer
+        st.markdown("""
+            <div class="card-content">
+                <div class="icon-circle">🌱</div>
+                <div class="card-title">تمويل المحاصيل</div>
+                <div class="card-desc">تحليل متقدم لفرص تمويل المحاصيل الزراعية وتقديم حلول مخصصة للمزارعين.</div>
+            </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        if st.button("Finance", key="btn_finance_hidden"):
+            st.session_state.chat_type = "general"
+            st.session_state.page = "chat"
+            st.rerun()
+        st.markdown("""
+            <div class="card-content">
+                <div class="icon-circle">📊</div>
+                <div class="card-title">التمويل والقروض</div>
+                <div class="card-desc">استكشاف الخيارات الائتمانية والتمويلية المتاحة لدعم المشاريع والنمو المالي.</div>
+            </div>
+        """, unsafe_allow_html=True)
+
+    with col3:
+        if st.button("Livestock", key="btn_livestock_hidden"):
+            st.session_state.chat_type = "agriculture"
+            st.session_state.page = "chat"
+            st.rerun()
+        st.markdown("""
+            <div class="card-content">
+                <div class="icon-circle">🐄</div>
+                <div class="card-title">الثروة الحيوانية</div>
+                <div class="card-desc">دعم شامل لمشاريع الإنتاج الحيواني والداجني عبر تحليلات دقيقة واستشارات فورية.</div>
+            </div>
+        """, unsafe_allow_html=True)
 
     st.markdown("""
         <div class="main-header">
