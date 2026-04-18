@@ -4,6 +4,9 @@ from PyPDF2 import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
+from gtts import gTTS
+import base64
+import os
 
 # =========================
 # CONFIG
@@ -14,7 +17,7 @@ model = genai.GenerativeModel("models/gemini-flash-latest")
 st.set_page_config(page_title="SANAD AI", layout="wide")
 
 # =========================
-# SESSION STATE (NAVIGATION)
+# SESSION STATE
 # =========================
 if "page" not in st.session_state:
     st.session_state.page = "home"
@@ -22,8 +25,9 @@ if "page" not in st.session_state:
 if "chat_type" not in st.session_state:
     st.session_state.chat_type = None
 
+
 # =========================
-# FUNCTIONS (same logic)
+# PDF READER
 # =========================
 def get_pdf_text(pdf_docs):
     text = ""
@@ -36,12 +40,18 @@ def get_pdf_text(pdf_docs):
     return text
 
 
+# =========================
+# EMBEDDINGS
+# =========================
 def get_embeddings():
     return HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
 
 
+# =========================
+# FAISS STORE
+# =========================
 def create_vector_store(text_chunks):
     embeddings = get_embeddings()
     db = FAISS.from_texts(text_chunks, embedding=embeddings)
@@ -56,15 +66,39 @@ def load_db():
         allow_dangerous_deserialization=True
     )
 
+
 # =========================
-# HOME PAGE UI
+# TEXT → AUDIO
+# =========================
+def text_to_audio(text):
+    tts = gTTS(text=text, lang="en")
+    audio_file = "response.mp3"
+    tts.save(audio_file)
+    return audio_file
+
+
+def autoplay_audio(file_path):
+    with open(file_path, "rb") as f:
+        audio_bytes = f.read()
+        b64 = base64.b64encode(audio_bytes).decode()
+
+    audio_html = f"""
+    <audio autoplay controls>
+        <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+    </audio>
+    """
+    st.markdown(audio_html, unsafe_allow_html=True)
+
+
+# =========================
+# HOME PAGE
 # =========================
 def home_page():
     st.markdown(
         """
         <h1 style='text-align:center; color:#2E8B57;'>🌾 SANAD AI Assistant</h1>
         <p style='text-align:center; font-size:18px;'>
-        Choose your specialization chatbot
+        Choose your AI chatbot
         </p>
         """,
         unsafe_allow_html=True
@@ -87,15 +121,16 @@ def home_page():
             st.session_state.page = "chat"
             st.session_state.chat_type = "general"
 
+
 # =========================
-# SIDEBAR (PDF UPLOAD)
+# SIDEBAR PDF UPLOAD
 # =========================
-def sidebar_upload():
+def sidebar():
     with st.sidebar:
         st.header("📂 Upload PDFs")
 
         pdf_docs = st.file_uploader(
-            "Upload PDF files",
+            "Upload PDFs",
             accept_multiple_files=True
         )
 
@@ -114,13 +149,14 @@ def sidebar_upload():
 
                 st.success("Done ✅")
             else:
-                st.warning("Upload PDFs first")
+                st.warning("Please upload files")
+
 
 # =========================
-# CHAT PAGE UI
+# CHAT PAGE
 # =========================
 def chat_page():
-    st.title(f"💬 {st.session_state.chat_type.upper()} Chatbot")
+    st.title(f"💬 {st.session_state.chat_type.upper()} CHATBOT")
 
     if st.button("⬅ Back"):
         st.session_state.page = "home"
@@ -148,11 +184,18 @@ Context:
 Question:
 {question}
 
-Answer:
+Answer clearly and concisely:
 """
 
         response = model.generate_content(prompt)
+
+        # 📝 TEXT OUTPUT
         st.success(response.text)
+
+        # 🔊 AUDIO OUTPUT
+        audio_file = text_to_audio(response.text)
+        autoplay_audio(audio_file)
+
 
 # =========================
 # ROUTING
@@ -161,5 +204,5 @@ if st.session_state.page == "home":
     home_page()
 
 elif st.session_state.page == "chat":
-    sidebar_upload()
+    sidebar()
     chat_page()
