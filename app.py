@@ -112,6 +112,12 @@ def autoplay_audio(file_path):
 # HOME PAGE (IMPROVED UI)
 # =========================
 def home_page():
+    st.set_page_config(
+    page_title="SANAD AI Assistant",
+    page_icon="🌾",
+    layout="wide",  # Use full screen width
+    initial_sidebar_state="collapsed"  # Hide sidebar by default
+)
     st.markdown("""
     <style>
         .browser-chrome {
