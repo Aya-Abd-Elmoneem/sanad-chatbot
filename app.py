@@ -23,38 +23,8 @@ st.set_page_config(
 )
 
 # =========================
-# 2. SESSION STATE
+# 2. CORE FUNCTIONS
 # =========================
-if "page" not in st.session_state:
-    st.session_state.page = "home"
-
-if "chat_type" not in st.session_state:
-    st.session_state.chat_type = None
-
-# =========================
-# 3. CORE FUNCTIONS (PDF & TTS)
-# =========================
-def get_pdf_text(pdf_docs):
-    text = ""
-    for pdf in pdf_docs:
-        reader = PdfReader(pdf)
-        for page in reader.pages:
-            page_text = page.extract_text()
-            if page_text: text += page_text
-    return text
-
-def get_embeddings():
-    return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-
-def create_vector_store(text_chunks):
-    embeddings = get_embeddings()
-    db = FAISS.from_texts(text_chunks, embedding=embeddings)
-    db.save_local("faiss_index")
-
-def load_db():
-    embeddings = get_embeddings()
-    return FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
-
 def text_to_audio(text):
     audio_file = "response.mp3"
     clean_text = re.sub(r"[.,:*()\-\n#]", " ", text)
@@ -71,7 +41,7 @@ def autoplay_audio(file_path):
     st.markdown(f'<audio autoplay><source src="data:audio/mp3;base64,{b64}" type="audio/mp3"></audio>', unsafe_allow_html=True)
 
 # =========================
-# 4. IMPROVED HOME PAGE UI
+# 3. ADVANCED UI (MODIFIED BUTTON POSITION)
 # =========================
 def home_page():
     st.markdown("""
@@ -97,12 +67,9 @@ def home_page():
                 -webkit-text-fill-color: transparent;
             }
 
-            [data-testid="stColumn"] {
+            /* تعديل العمود ليكون مرجعاً للعناصر المطلقة */
+            [data-testid="column"] {
                 position: relative;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
             }
 
             .card-ui {
@@ -113,31 +80,48 @@ def home_page():
                 text-align: center;
                 backdrop-filter: blur(10px);
                 height: 400px;
-                width: 100%;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
                 transition: 0.3s ease;
                 z-index: 1;
-            }
-
-            /* --- التمركز التام للزر في منتصف البطاقة --- */
-            .stButton > button {
-                position: absolute !important;
-                top: 50% !important;
-                left: 50% !important;
-                transform: translate(-50%, -50%) !important; /* لضمان التمركز في الوسط تماماً */
-                width: 100% !important;
-                height: 400px !important;
-                background: transparent !important;
-                border: none !important;
-                color: transparent !important;
-                z-index: 5 !important;
+                position: relative;
                 cursor: pointer;
             }
 
-            [data-testid="stColumn"]:hover .card-ui {
+            /* جعل الزر يغطي البطاقة بالكامل */
+            .stButton {
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                z-index: 10 !important;
+            }
+
+            /* إخفاء محتوى الزر الأصلي */
+            .stButton > button {
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                background: transparent !important;
+                border: none !important;
+                color: transparent !important;
+                cursor: pointer !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                z-index: 10 !important;
+            }
+
+            /* تأثير hover عند تمرير الماوس على العمود بالكامل */
+            [data-testid="column"]:hover .card-ui {
                 border-color: #10b981;
                 background: rgba(30, 41, 59, 0.6);
                 transform: translateY(-8px);
@@ -147,8 +131,6 @@ def home_page():
             .icon-box { font-size: 4.5rem; margin-bottom: 20px; }
             .card-title { font-size: 1.6rem; font-weight: 700; color: white; margin-bottom: 10px; }
             .card-desc { font-size: 1rem; color: #94a3b8; line-height: 1.5; }
-
-            .stButton { margin: 0 !important; padding: 0 !important; }
         </style>
     """, unsafe_allow_html=True)
 
@@ -163,6 +145,7 @@ def home_page():
 
     def create_card(col, icon, title, desc, key, chat_type):
         with col:
+            # عرض البطاقة
             st.markdown(f"""
                 <div class="card-ui">
                     <div class="icon-box">{icon}</div>
@@ -171,7 +154,8 @@ def home_page():
                 </div>
             """, unsafe_allow_html=True)
             
-            if st.button("", key=key):
+            # الزر يغطي البطاقة بالكامل - لن يظهر أي نص زر
+            if st.button("", key=key, use_container_width=True):
                 st.session_state.chat_type = chat_type
                 st.session_state.page = "chat"
                 st.rerun()
@@ -181,71 +165,16 @@ def home_page():
     create_card(col3, "🐄", "الثروة الحيوانية", "دعم فني وتمويلي لمشاريع الإنتاج الحيواني والداجني.", "livestock_btn", "agriculture")
 
 # =========================
-# 5. CHAT PAGE & SIDEBAR
+# 4. CHAT PAGE ROUTING
 # =========================
-def sidebar():
-    with st.sidebar:
-        st.header("📂 إدارة ملفات القسم")
-        pdf_docs = st.file_uploader("ارفع ملفات PDF (Knowledge Base)", accept_multiple_files=True)
-        if st.button("تحديث قاعدة البيانات"):
-            if pdf_docs:
-                with st.spinner("جاري تحليل الملفات..."):
-                    raw_text = get_pdf_text(pdf_docs)
-                    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-                    chunks = splitter.split_text(raw_text)
-                    create_vector_store(chunks)
-                st.success("تم التحديث بنجاح! ✅")
-            else:
-                st.warning("يرجى اختيار ملفات أولاً.")
+if "page" not in st.session_state: 
+    st.session_state.page = "home"
 
-def chat_page():
-    st.markdown(f"<h1 style='text-align: right; color: #10b981;'>💬 مساعد {st.session_state.chat_type.upper()}</h1>", unsafe_allow_html=True)
-    
-    if st.button("⬅️ العودة للرئيسية"):
-        st.session_state.page = "home"
-        st.rerun()
-
-    st.divider()
-
-    # Chat interface
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-    if prompt := st.chat_input("اسأل SANAD..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        with st.chat_message("assistant"):
-            with st.spinner("جاري التفكير..."):
-                try:
-                    db = load_db()
-                    docs = db.similarity_search(prompt)
-                    context = "\n\n".join([d.page_content for d in docs])
-                except:
-                    context = "لا توجد ملفات مرفوعة لهذا القسم."
-
-                sys_msg = "أنت خبير ذكاء اصطناعي في مجال الزراعة والتمويل. أجب باللغة العربية بأسلوب مهني ومختصر."
-                full_query = f"{sys_msg}\n\nالسياق: {context}\n\nالسؤال: {prompt}"
-                
-                response = model.generate_content(full_query)
-                st.markdown(response.text)
-                
-                # TTS
-                audio_path = text_to_audio(response.text)
-                autoplay_audio(audio_path)
-                
-                st.session_state.messages.append({"role": "assistant", "content": response.text})
-
-# =========================
-# 6. ROUTING
-# =========================
 if st.session_state.page == "home":
     home_page()
-elif st.session_state.page == "chat":
-    sidebar()
-    chat_page()
+else:
+    # منطق صفحة الدردشة
+    st.markdown(f"<h1 style='text-align: right; color: #10b981;'>💬 مساعد {st.session_state.chat_type}</h1>", unsafe_allow_html=True)
+    if st.button("⬅️ العودة"):
+        st.session_state.page = "home"
+        st.rerun()
