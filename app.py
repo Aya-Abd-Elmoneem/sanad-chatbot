@@ -5,9 +5,9 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 import base64
-import os
 import asyncio
 import edge_tts
+import re
 
 # =========================
 # CONFIG
@@ -16,6 +16,7 @@ genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 model = genai.GenerativeModel("models/gemini-flash-latest")
 
 st.set_page_config(page_title="SANAD AI", layout="wide")
+
 
 # =========================
 # SESSION STATE
@@ -51,7 +52,7 @@ def get_embeddings():
 
 
 # =========================
-# FAISS STORE
+# FAISS
 # =========================
 def create_vector_store(text_chunks):
     embeddings = get_embeddings()
@@ -69,14 +70,24 @@ def load_db():
 
 
 # =========================
+# CLEAN TEXT FOR TTS
+# =========================
+def clean_text_for_tts(text):
+    text = re.sub(r"[.,:*()\-\n#]", " ", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
+
+
+# =========================
 # TEXT → AUDIO (EGYPTIAN VOICE)
 # =========================
 def text_to_audio(text):
     audio_file = "response.mp3"
+    clean_text = clean_text_for_tts(text)
 
     async def generate():
         communicate = edge_tts.Communicate(
-            text,
+            clean_text,
             voice="ar-EG-SalmaNeural"
         )
         await communicate.save(audio_file)
@@ -90,16 +101,15 @@ def autoplay_audio(file_path):
         audio_bytes = f.read()
         b64 = base64.b64encode(audio_bytes).decode()
 
-    audio_html = f"""
-    <audio autoplay controls>
-        <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-    </audio>
-    """
-    st.markdown(audio_html, unsafe_allow_html=True)
+    st.markdown(f"""
+        <audio autoplay controls>
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+        </audio>
+    """, unsafe_allow_html=True)
 
 
 # =========================
-# HOME PAGE (UPDATED UI)
+# HOME PAGE (IMPROVED UI)
 # =========================
 def home_page():
     st.markdown("""
@@ -112,44 +122,46 @@ def home_page():
     st.markdown("""
         <style>
         .stButton>button {
-            width: 250px;
-            height: 80px;
+            width: 240px;
+            height: 85px;
             font-size: 18px;
             border-radius: 15px;
             background-color: #2E8B57;
             color: white;
             font-weight: bold;
+            margin: 10px;
         }
 
         .stButton>button:hover {
             background-color: #256b45;
         }
 
-        div.row-buttons {
+        .center {
             display: flex;
             justify-content: center;
-            gap: 20px;
-            margin-top: 40px;
         }
         </style>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns([1,2,1])
 
-    with col1:
+    with col2:
+        st.markdown("<div class='center'>", unsafe_allow_html=True)
+
         if st.button("🌱 Agriculture AI"):
             st.session_state.page = "chat"
             st.session_state.chat_type = "agriculture"
 
-    with col2:
         if st.button("📊 Data Science AI"):
             st.session_state.page = "chat"
             st.session_state.chat_type = "data"
 
-    with col3:
         if st.button("🤖 General AI"):
             st.session_state.page = "chat"
             st.session_state.chat_type = "general"
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
 
 # =========================
 # SIDEBAR PDF
@@ -213,14 +225,14 @@ Context:
 Question:
 {question}
 
-Answer in a clear, simple way:
+Answer clearly and simply:
 """
 
         response = model.generate_content(prompt)
 
         st.success(response.text)
 
-        # AUDIO (Egyptian)
+        # AUDIO OUTPUT
         audio_file = text_to_audio(response.text)
         autoplay_audio(audio_file)
 
