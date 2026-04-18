@@ -10,15 +10,20 @@ import edge_tts
 import re
 
 # =========================
-# CONFIG
+# 1. CONFIGURATION
 # =========================
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 model = genai.GenerativeModel("models/gemini-flash-latest")
 
-st.set_page_config(page_title="SANAD AI Assistant", page_icon="🌾", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(
+    page_title="SANAD AI Assistant",
+    page_icon="🌾",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
 # =========================
-# SESSION STATE
+# 2. SESSION STATE
 # =========================
 if "page" not in st.session_state:
     st.session_state.page = "home"
@@ -27,7 +32,7 @@ if "chat_type" not in st.session_state:
     st.session_state.chat_type = None
 
 # =========================
-# PDF & AUDIO FUNCTIONS (Keeping your logic)
+# 3. CORE FUNCTIONS (PDF & TTS)
 # =========================
 def get_pdf_text(pdf_docs):
     text = ""
@@ -50,17 +55,11 @@ def load_db():
     embeddings = get_embeddings()
     return FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
 
-def clean_text_for_tts(text):
-    text = re.sub(r"[.,:*()\-\n#]", " ", text)
-    text = re.sub(r"\s+", " ", text)
-    return text.strip()
-
 def text_to_audio(text):
     audio_file = "response.mp3"
-    clean_text = clean_text_for_tts(text)
+    clean_text = re.sub(r"[.,:*()\-\n#]", " ", text)
     async def generate():
         communicate = edge_tts.Communicate(clean_text, voice="ar-EG-SalmaNeural")
-        await communicate.run() # Fixed: use run() for standard execution
         await communicate.save(audio_file)
     asyncio.run(generate())
     return audio_file
@@ -72,168 +71,203 @@ def autoplay_audio(file_path):
     st.markdown(f'<audio autoplay><source src="data:audio/mp3;base64,{b64}" type="audio/mp3"></audio>', unsafe_allow_html=True)
 
 # =========================
-# HOME PAGE (PROFESSIONAL RTL DESIGN)
+# 4. IMPROVED HOME PAGE UI
 # =========================
 def home_page():
-    # CSS لتحويل الواجهة للعربية وجعلها عصرية
     st.markdown("""
         <style>
-            /* اتجاه النص من اليمين لليسار */
-            .main {
-                direction: rtl;
-                text-align: right;
-            }
-            
-            /* خلفية احترافية */
+            @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+
             .stApp {
-                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-                color: #ffffff;
+                background: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 100%);
+                font-family: 'Cairo', sans-serif;
+                direction: rtl;
             }
 
-            /* تصميم الهيدر */
-            .header-container {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
+            .main-header {
                 text-align: center;
-                padding: 50px 0;
+                padding: 60px 0 20px 0;
             }
+            
             .title-text {
                 font-size: 4rem;
-                font-weight: 800;
-                background: linear-gradient(90deg, #10b981, #34d399);
+                font-weight: 900;
+                background: linear-gradient(90deg, #10b981, #34d399, #10b981);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 margin-bottom: 10px;
-            }
-            .sub-title {
-                font-size: 1.5rem;
-                color: #94a3b8;
+                filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.2));
             }
 
-            /* تصميم البطاقات (Cards) */
-            [data-testid="stVerticalBlock"] > div > div > div[data-testid="stVerticalBlock"] {
-                background: rgba(30, 41, 59, 0.7);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 24px;
-                padding: 30px;
-                transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            .tagline {
+                color: #94a3b8;
+                font-size: 1.3rem;
+                margin-bottom: 40px;
+            }
+
+            /* Glassmorphism Card Wrapper */
+            .card-style {
+                background: rgba(30, 41, 59, 0.4);
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                border-radius: 25px;
+                padding: 40px 20px;
                 text-align: center;
                 backdrop-filter: blur(10px);
+                transition: 0.4s ease;
+                min-height: 380px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
             }
-            
-            [data-testid="stVerticalBlock"] > div > div > div[data-testid="stVerticalBlock"]:hover {
+
+            .card-style:hover {
                 transform: translateY(-10px);
                 border-color: #10b981;
                 box-shadow: 0 20px 40px rgba(0,0,0,0.4);
             }
 
-            .card-icon { font-size: 5rem; margin-bottom: 20px; }
-            .card-title { font-size: 1.8rem; font-weight: 700; color: #ffffff; margin-bottom: 15px; }
-            .card-desc { font-size: 1.1rem; color: #94a3b8; margin-bottom: 30px; line-height: 1.6; }
+            .icon-circle {
+                background: rgba(16, 185, 129, 0.1);
+                width: 90px;
+                height: 90px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 3.5rem;
+                margin-bottom: 20px;
+            }
 
-            /* تحسين شكل الأزرار */
+            .card-title {
+                font-size: 1.6rem;
+                font-weight: 700;
+                color: #ffffff;
+                margin-bottom: 15px;
+            }
+
+            .card-desc {
+                font-size: 1rem;
+                color: #94a3b8;
+                line-height: 1.6;
+                margin-bottom: 25px;
+            }
+
+            /* Custom Button */
             .stButton > button {
                 width: 100%;
-                background: linear-gradient(90deg, #10b981, #059669);
-                color: white;
-                border: none;
-                padding: 12px 0;
-                border-radius: 12px;
-                font-size: 1.2rem;
-                font-weight: 600;
-                transition: 0.3s;
+                background: linear-gradient(90deg, #10b981, #059669) !important;
+                color: white !important;
+                border: none !important;
+                padding: 12px 0 !important;
+                border-radius: 12px !important;
+                font-weight: 700 !important;
+                transition: 0.3s !important;
             }
+            
             .stButton > button:hover {
-                box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
-                transform: scale(1.05);
+                transform: scale(1.03) !important;
+                box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3) !important;
             }
         </style>
     """, unsafe_allow_html=True)
 
-    # الهيدر
     st.markdown("""
-        <div class="header-container">
-            <h1 class="title-text">🌾 SANAD AI Assistant</h1>
-            <p class="sub-title">مساعدك الذكي في عالم الزراعة والتمويل</p>
-            <p style="color:#64748b; margin-top:10px;">اختر القسم المناسب للبدء</p>
+        <div class="main-header">
+            <h1 class="title-text">SANAD AI Assistant</h1>
+            <p class="tagline">مساعدك الذكي المدعوم بالذكاء الاصطناعي في القطاع الزراعي</p>
         </div>
     """, unsafe_allow_html=True)
 
-    # شبكة الأقسام
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns(3, gap="medium")
 
     with col1:
-        st.markdown('<div class="card-icon">🌱</div>', unsafe_allow_html=True)
-        st.markdown('<div class="card-title">تمويل المحاصيل</div>', unsafe_allow_html=True)
-        st.markdown('<div class="card-desc">حلول ذكية لدعم إنتاج المحاصيل والمزارعين والنمو المستدام</div>', unsafe_allow_html=True)
+        st.markdown('<div class="card-style"><div class="icon-circle">🌱</div><div class="card-title">تمويل المحاصيل</div><div class="card-desc">تحليل متقدم لفرص تمويل المحاصيل الزراعية وتقديم حلول مخصصة للمزارعين.</div>', unsafe_allow_html=True)
         if st.button("دخول القسم", key="btn_agri"):
             st.session_state.chat_type = "agriculture"
             st.session_state.page = "chat"
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
-        st.markdown('<div class="card-icon">📈</div>', unsafe_allow_html=True)
-        st.markdown('<div class="card-title">التمويل والقروض</div>', unsafe_allow_html=True)
-        st.markdown('<div class="card-desc">استشارات ائتمانية وتسهيلات مالية مبتكرة لمشاريعك</div>', unsafe_allow_html=True)
+        st.markdown('<div class="card-style"><div class="icon-circle">📊</div><div class="card-title">التمويل والقروض</div><div class="card-desc">استكشاف الخيارات الائتمانية والتمويلية المتاحة لدعم المشاريع والنمو المالي.</div>', unsafe_allow_html=True)
         if st.button("دخول القسم", key="btn_finance"):
             st.session_state.chat_type = "general"
             st.session_state.page = "chat"
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with col3:
-        st.markdown('<div class="card-icon">🐄</div>', unsafe_allow_html=True)
-        st.markdown('<div class="card-title">الثروة الحيوانية</div>', unsafe_allow_html=True)
-        st.markdown('<div class="card-desc">دعم فني وتمويلي متخصص لمشاريع الإنتاج الحيواني والداجني</div>', unsafe_allow_html=True)
+        st.markdown('<div class="card-style"><div class="icon-circle">🐄</div><div class="card-title">الثروة الحيوانية</div><div class="card-desc">دعم شامل لمشاريع الإنتاج الحيواني والداجني عبر تحليلات دقيقة واستشارات فورية.</div>', unsafe_allow_html=True)
         if st.button("دخول القسم", key="btn_livestock"):
             st.session_state.chat_type = "agriculture"
             st.session_state.page = "chat"
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================
-# CHAT & SIDEBAR (Keeping your logic)
+# 5. CHAT PAGE & SIDEBAR
 # =========================
 def sidebar():
     with st.sidebar:
-        st.header("📂 ملفات المعرفة")
-        pdf_docs = st.file_uploader("ارفع ملفات PDF الخاصة بالقسم", accept_multiple_files=True)
-        if st.button("معالجة الملفات"):
+        st.header("📂 إدارة ملفات القسم")
+        pdf_docs = st.file_uploader("ارفع ملفات PDF (Knowledge Base)", accept_multiple_files=True)
+        if st.button("تحديث قاعدة البيانات"):
             if pdf_docs:
-                with st.spinner("جاري التحليل..."):
+                with st.spinner("جاري تحليل الملفات..."):
                     raw_text = get_pdf_text(pdf_docs)
                     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
                     chunks = splitter.split_text(raw_text)
                     create_vector_store(chunks)
-                st.success("تم التجهيز ✅")
-            else: st.warning("يرجى رفع ملفات أولاً")
+                st.success("تم التحديث بنجاح! ✅")
+            else:
+                st.warning("يرجى اختيار ملفات أولاً.")
 
 def chat_page():
-    st.markdown(f"<h1 style='text-align: right;'>💬 محادثة: {st.session_state.chat_type}</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='text-align: right; color: #10b981;'>💬 مساعد {st.session_state.chat_type.upper()}</h1>", unsafe_allow_html=True)
     
     if st.button("⬅️ العودة للرئيسية"):
         st.session_state.page = "home"
         st.rerun()
 
-    question = st.chat_input("اسألني أي شيء عن هذا القسم...")
+    st.divider()
 
-    if question:
-        st.chat_message("user").write(question)
-        with st.spinner("يفكر SANAD..."):
-            try:
-                db = load_db()
-                docs = db.similarity_search(question)
-                context = "\n\n".join([d.page_content for d in docs])
-            except: context = "لا يوجد سياق من الملفات حالياً."
+    # Chat interface
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
-            prompt = f"أجب باللغة العربية بوضوح: {question}\n\nالسياق المتاح: {context}"
-            response = model.generate_content(prompt)
-            
-            st.chat_message("assistant").write(response.text)
-            audio_file = text_to_audio(response.text)
-            autoplay_audio(audio_file)
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    if prompt := st.chat_input("اسأل SANAD..."):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        with st.chat_message("assistant"):
+            with st.spinner("جاري التفكير..."):
+                try:
+                    db = load_db()
+                    docs = db.similarity_search(prompt)
+                    context = "\n\n".join([d.page_content for d in docs])
+                except:
+                    context = "لا توجد ملفات مرفوعة لهذا القسم."
+
+                sys_msg = "أنت خبير ذكاء اصطناعي في مجال الزراعة والتمويل. أجب باللغة العربية بأسلوب مهني ومختصر."
+                full_query = f"{sys_msg}\n\nالسياق: {context}\n\nالسؤال: {prompt}"
+                
+                response = model.generate_content(full_query)
+                st.markdown(response.text)
+                
+                # TTS
+                audio_path = text_to_audio(response.text)
+                autoplay_audio(audio_path)
+                
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
 
 # =========================
-# ROUTING
+# 6. ROUTING
 # =========================
 if st.session_state.page == "home":
     home_page()
