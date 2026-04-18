@@ -13,7 +13,7 @@ import edge_tts
 # CONFIG
 # =========================
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-model = genai.GenerativeModel("models/gemini-1.5-flash")
+model = genai.GenerativeModel("models/gemini-flash-latest")
 
 st.set_page_config(page_title="SANAD AI", layout="wide")
 
