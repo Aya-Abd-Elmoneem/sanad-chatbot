@@ -113,54 +113,81 @@ def autoplay_audio(file_path):
 # =========================
 def home_page():
     st.markdown("""
-        <h1 style='text-align:center; color:#2E8B57;'>🌾 SANAD AI Assistant</h1>
-        <p style='text-align:center; font-size:18px;'>
-        Choose your AI chatbot
-        </p>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""
         <style>
-        .stButton>button {
-            width: 240px;
-            height: 85px;
+        .title {
+            text-align: center;
+            color: #2E8B57;
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #aaa;
             font-size: 18px;
-            border-radius: 15px;
-            background-color: #2E8B57;
-            color: white;
-            font-weight: bold;
-            margin: 10px;
+            margin-bottom: 40px;
         }
 
-        .stButton>button:hover {
-            background-color: #256b45;
-        }
-
-        .center {
+        .card-container {
             display: flex;
             justify-content: center;
+            gap: 25px;
+            margin-top: 40px;
+            flex-wrap: wrap;
         }
+
+        .card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            width: 260px;
+            height: 180px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            transition: 0.3s ease;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 35px rgba(46,139,87,0.4);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .card-icon {
+            font-size: 40px;
+        }
+
         </style>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([1,2,1])
+    st.markdown("<div class='title'>🌾 SANAD AI Assistant</div>", unsafe_allow_html=True)
+    st.markdown("<div class='subtitle'>Choose your AI assistant</div>", unsafe_allow_html=True)
 
-    with col2:
-        st.markdown("<div class='center'>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns(3)
 
+    with col1:
         if st.button("🌱 Agriculture AI"):
             st.session_state.page = "chat"
             st.session_state.chat_type = "agriculture"
 
+    with col2:
         if st.button("📊 Data Science AI"):
             st.session_state.page = "chat"
             st.session_state.chat_type = "data"
 
+    with col3:
         if st.button("🤖 General AI"):
             st.session_state.page = "chat"
             st.session_state.chat_type = "general"
-
-        st.markdown("</div>", unsafe_allow_html=True)
 
 
 # =========================
