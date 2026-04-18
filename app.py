@@ -41,7 +41,7 @@ def autoplay_audio(file_path):
     st.markdown(f'<audio autoplay><source src="data:audio/mp3;base64,{b64}" type="audio/mp3"></audio>', unsafe_allow_html=True)
 
 # =========================
-# 3. ADVANCED UI (ADJUSTED BUTTON POSITION)
+# 3. ADVANCED UI (PRECISION BUTTON ALIGNMENT)
 # =========================
 def home_page():
     st.markdown("""
@@ -89,13 +89,13 @@ def home_page():
                 z-index: 1;
             }
 
-            /* --- تم رفع الزر هنا باستعمال قيمة سالبة لـ top --- */
+            /* --- تعديل إحداثيات الزر بدقة --- */
             .stButton > button {
                 position: absolute !important;
-                top: -10px !important; /* رفع الزر للأعلى قليلاً */
-                left: 0 !important;
+                top: -15px !important;    /* تحريك للأعلى أكثر قليلاً */
+                right: 5px !important;   /* تحريك لليسار مسافة صغيرة (في بيئة RTL الـ right الموجب يزيح لليسار) */
                 width: 100% !important;
-                height: 410px !important; /* زيادة الارتفاع لتعويض الرفع */
+                height: 415px !important; /* زيادة الارتفاع لضمان التغطية بعد الرفع */
                 background: transparent !important;
                 border: none !important;
                 color: transparent !important;
@@ -147,14 +147,13 @@ def home_page():
     create_card(col3, "🐄", "الثروة الحيوانية", "دعم فني وتمويلي لمشاريع الإنتاج الحيواني والداجني.", "livestock_btn", "agriculture")
 
 # =========================
-# 4. CHAT PAGE ROUTING
+# 4. ROUTING
 # =========================
 if "page" not in st.session_state: st.session_state.page = "home"
 
 if st.session_state.page == "home":
     home_page()
 else:
-    # منطق صفحة الدردشة
     st.markdown(f"<h1 style='text-align: right; color: #10b981;'>💬 مساعد {st.session_state.chat_type}</h1>", unsafe_allow_html=True)
     if st.button("⬅️ العودة"):
         st.session_state.page = "home"
