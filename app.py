@@ -224,7 +224,7 @@ def sidebar():
                 st.warning("Upload the file.")
 
 def chat_page():
-    st.markdown(f"<h1 style='text-align: left; color: #10b981;'>💬 {st.session_state.chat_type.upper()} Assistant</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='text-align: center; color: #10b981;'>💬 {st.session_state.chat_type.upper()} Assistant</h1>", unsafe_allow_html=True)
     
     if st.button("⬅️ Back"):
         st.session_state.page = "home"
