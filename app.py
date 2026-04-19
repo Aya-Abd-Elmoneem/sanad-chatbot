@@ -6,7 +6,7 @@ from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 import base64
 import asyncio
-import edge_tts
+from gtts import gTTS
 import re
 
 # =========================
@@ -60,29 +60,14 @@ def load_db():
 def text_to_audio(text):
     audio_file = "response.mp3"
 
-    # تنظيف النص من أي رموز
+    # تنظيف النص (يشيل الرموز)
     clean_text = re.sub(r"[^\w\s\u0600-\u06FF]", " ", text)
     clean_text = re.sub(r"\s+", " ", clean_text).strip()
 
-    # SSML لصوت طبيعي باللهجة المصرية
-    ssml_text = f"""
-    <speak version="1.0" xml:lang="ar-EG">
-        <voice name="ar-EG-SalmaNeural">
-            <prosody rate="-8%" pitch="+2%">
-                {clean_text}
-            </prosody>
-        </voice>
-    </speak>
-    """
+    # تحويل النص لصوت
+    tts = gTTS(text=clean_text, lang='ar')
+    tts.save(audio_file)
 
-    async def generate():
-        communicate = edge_tts.Communicate(
-            text=ssml_text,
-            voice="ar-EG-SalmaNeural"
-        )
-        await communicate.save(audio_file)
-
-    asyncio.run(generate())
     return audio_file
 
 def autoplay_audio(file_path):
