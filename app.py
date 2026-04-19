@@ -210,23 +210,23 @@ def home_page():
 # =========================
 def sidebar():
     with st.sidebar:
-        st.header("📂 إدارة ملفات القسم")
-        pdf_docs = st.file_uploader("ارفع ملفات PDF (Knowledge Base)", accept_multiple_files=True)
-        if st.button("تحديث قاعدة البيانات"):
+        st.header("📂 Documents")
+        pdf_docs = st.file_uploader("Upload PDF (Knowledge Base)", accept_multiple_files=True)
+        if st.button("Process"):
             if pdf_docs:
-                with st.spinner("جاري تحليل الملفات..."):
+                with st.spinner("Processing..."):
                     raw_text = get_pdf_text(pdf_docs)
                     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
                     chunks = splitter.split_text(raw_text)
                     create_vector_store(chunks)
-                st.success("تم التحديث بنجاح! ✅")
+                st.success("Done! ✅")
             else:
-                st.warning("يرجى اختيار ملفات أولاً.")
+                st.warning("Upload the file.")
 
 def chat_page():
-    st.markdown(f"<h1 style='text-align: right; color: #10b981;'>💬 مساعد {st.session_state.chat_type.upper()}</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='text-align: right; color: #10b981;'>💬 Assistant {st.session_state.chat_type.upper()}</h1>", unsafe_allow_html=True)
     
-    if st.button("⬅️ العودة للرئيسية"):
+    if st.button("⬅️ Back"):
         st.session_state.page = "home"
         st.rerun()
 
@@ -240,19 +240,19 @@ def chat_page():
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    if prompt := st.chat_input("اسأل SANAD..."):
+    if prompt := st.chat_input("Ask SANAD..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
         with st.chat_message("assistant"):
-            with st.spinner("جاري التفكير..."):
+            with st.spinner("Thinking..."):
                 try:
                     db = load_db()
                     docs = db.similarity_search(prompt)
                     context = "\n\n".join([d.page_content for d in docs])
                 except:
-                    context = "لا توجد ملفات مرفوعة لهذا القسم."
+                    context = "No files have been uploaded for this section."
 
                 sys_msg = "أنت خبير ذكاء اصطناعي في مجال الزراعة والتمويل. أجب باللغة العربية بأسلوب مهني ومختصر."
                 full_query = f"{sys_msg}\n\nالسياق: {context}\n\nالسؤال: {prompt}"
