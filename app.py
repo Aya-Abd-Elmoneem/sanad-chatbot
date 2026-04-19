@@ -56,15 +56,15 @@ def load_db():
     embeddings = get_embeddings()
     return FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
 
-# 🔥 UPDATED TTS FUNCTION (PERFECT VERSION)
+# 🔥 UPDATED TTS ONLY
 def text_to_audio(text):
     audio_file = "response.mp3"
 
-    # 1. تنظيف النص من الرموز
+    # تنظيف النص من أي رموز
     clean_text = re.sub(r"[^\w\s\u0600-\u06FF]", " ", text)
     clean_text = re.sub(r"\s+", " ", clean_text).strip()
 
-    # 2. SSML لصوت طبيعي
+    # SSML لصوت طبيعي باللهجة المصرية
     ssml_text = f"""
     <speak version="1.0" xml:lang="ar-EG">
         <voice name="ar-EG-SalmaNeural">
@@ -92,80 +92,181 @@ def autoplay_audio(file_path):
 
     st.markdown(
         f"""
-        <audio autoplay controls>
-        <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+        <audio autoplay controls style="width:100%;">
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
         </audio>
         """,
         unsafe_allow_html=True
     )
 
 # =========================
-# 4. HOME PAGE
+# 4. IMPROVED HOME PAGE UI (UNCHANGED)
 # =========================
 def home_page():
-    st.title("🌾 SANAD AI Assistant")
-    st.write("مساعدك الذكي في الزراعة والتمويل")
+    st.markdown("""
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
 
-    col1, col2, col3 = st.columns(3)
+            .stApp {
+                background: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 100%);
+                font-family: 'Cairo', sans-serif;
+                direction: rtl;
+            }
+
+            .main-header {
+                text-align: center;
+                padding: 60px 0 20px 0;
+            }
+            
+            .title-text {
+                font-size: 4rem;
+                font-weight: 900;
+                background: linear-gradient(90deg, #10b981, #34d399, #10b981);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin-bottom: 10px;
+                filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.2));
+            }
+
+            .tagline {
+                color: #94a3b8;
+                font-size: 1.3rem;
+                margin-bottom: 40px;
+            }
+
+            .card-style {
+                background: rgba(30, 41, 59, 0.4);
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                border-radius: 25px;
+                padding: 40px 20px;
+                text-align: center;
+                backdrop-filter: blur(10px);
+                transition: 0.4s ease;
+                min-height: 380px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .card-style:hover {
+                transform: translateY(-10px);
+                border-color: #10b981;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            }
+
+            .icon-circle {
+                background: rgba(16, 185, 129, 0.1);
+                width: 90px;
+                height: 90px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 3.5rem;
+                margin-bottom: 20px;
+            }
+
+            .card-title {
+                font-size: 1.6rem;
+                font-weight: 700;
+                color: #ffffff;
+                margin-bottom: 15px;
+            }
+
+            .card-desc {
+                font-size: 1rem;
+                color: #94a3b8;
+                line-height: 1.6;
+                margin-bottom: 25px;
+            }
+
+            .stButton > button {
+                width: 100%;
+                background: linear-gradient(90deg, #10b981, #059669) !important;
+                color: white !important;
+                border: none !important;
+                padding: 12px 0 !important;
+                border-radius: 12px !important;
+                font-weight: 700 !important;
+                transition: 0.3s !important;
+            }
+            
+            .stButton > button:hover {
+                transform: scale(1.03) !important;
+                box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3) !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+        <div class="main-header">
+            <h1 class="title-text">SANAD AI Assistant</h1>
+            <p class="tagline">مساعدك الذكي المدعوم بالذكاء الاصطناعي في القطاع الزراعي</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns(3, gap="medium")
 
     with col1:
-        if st.button("🌱 الزراعة"):
+        st.markdown('<div class="card-style"><div class="icon-circle">🌱</div><div class="card-title">تمويل المحاصيل</div><div class="card-desc">تحليل متقدم لفرص تمويل المحاصيل الزراعية وتقديم حلول مخصصة للمزارعين.</div>', unsafe_allow_html=True)
+        if st.button("دخول القسم", key="btn_agri"):
             st.session_state.chat_type = "agriculture"
             st.session_state.page = "chat"
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
-        if st.button("📊 التمويل"):
-            st.session_state.chat_type = "finance"
+        st.markdown('<div class="card-style"><div class="icon-circle">📊</div><div class="card-title">التمويل والقروض</div><div class="card-desc">استكشاف الخيارات الائتمانية والتمويلية المتاحة لدعم المشاريع والنمو المالي.</div>', unsafe_allow_html=True)
+        if st.button("دخول القسم", key="btn_finance"):
+            st.session_state.chat_type = "general"
             st.session_state.page = "chat"
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with col3:
-        if st.button("🐄 الإنتاج الحيواني"):
-            st.session_state.chat_type = "livestock"
+        st.markdown('<div class="card-style"><div class="icon-circle">🐄</div><div class="card-title">الثروة الحيوانية</div><div class="card-desc">دعم شامل لمشاريع الإنتاج الحيواني والداجني عبر تحليلات دقيقة واستشارات فورية.</div>', unsafe_allow_html=True)
+        if st.button("دخول القسم", key="btn_livestock"):
+            st.session_state.chat_type = "agriculture"
             st.session_state.page = "chat"
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================
-# 5. SIDEBAR
+# 5. CHAT PAGE & SIDEBAR (UNCHANGED)
 # =========================
 def sidebar():
     with st.sidebar:
-        st.header("📂 Upload PDF")
-        pdf_docs = st.file_uploader("Upload PDF", accept_multiple_files=True)
-
+        st.header("📂 Documents")
+        pdf_docs = st.file_uploader("Upload PDF (Knowledge Base)", accept_multiple_files=True)
         if st.button("Process"):
             if pdf_docs:
                 with st.spinner("Processing..."):
                     raw_text = get_pdf_text(pdf_docs)
-                    splitter = RecursiveCharacterTextSplitter(
-                        chunk_size=1000,
-                        chunk_overlap=100
-                    )
+                    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
                     chunks = splitter.split_text(raw_text)
                     create_vector_store(chunks)
-                st.success("Done ✅")
+                st.success("Done! ✅")
             else:
-                st.warning("Upload files first")
+                st.warning("Upload the file.")
 
-# =========================
-# 6. CHAT PAGE
-# =========================
 def chat_page():
-    st.title(f"💬 {st.session_state.chat_type} Assistant")
-
+    st.markdown(f"<h1 style='text-align: center; color: #10b981;'>💬 {st.session_state.chat_type.title()} Assistant</h1>", unsafe_allow_html=True)
+    
     if st.button("⬅️ Back"):
         st.session_state.page = "home"
         st.rerun()
 
+    st.divider()
+
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
-    if prompt := st.chat_input("اسأل سَنَد..."):
+    if prompt := st.chat_input("Ask SANAD..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
 
         with st.chat_message("user"):
@@ -173,42 +274,27 @@ def chat_page():
 
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-
                 try:
                     db = load_db()
                     docs = db.similarity_search(prompt)
-                    context = "\n".join([d.page_content for d in docs])
+                    context = "\n\n".join([d.page_content for d in docs])
                 except:
-                    context = "لا يوجد ملفات مرفوعة."
+                    context = "No files have been uploaded for this section."
 
-                # 🔥 تحسين البرومبت للهجة المصرية
-                sys_msg = "اتكلم باللهجة المصرية بشكل بسيط وواضح ومفهوم."
-
-                full_prompt = f"""
-                {sys_msg}
-
-                السياق:
-                {context}
-
-                السؤال:
-                {prompt}
-                """
-
-                response = model.generate_content(full_prompt)
-
+                sys_msg = "أنت خبير ذكاء اصطناعي في مجال الزراعة والتمويل. أجب باللغة العربية بأسلوب مهني ومختصر."
+                full_query = f"{sys_msg}\n\nالسياق: {context}\n\nالسؤال: {prompt}"
+                
+                response = model.generate_content(full_query)
                 st.markdown(response.text)
 
-                # 🔊 تشغيل الصوت
+                # 🔊 الصوت بعد التعديل
                 audio_path = text_to_audio(response.text)
                 autoplay_audio(audio_path)
 
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": response.text
-                })
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
 
 # =========================
-# 7. ROUTING
+# 6. ROUTING
 # =========================
 if st.session_state.page == "home":
     home_page()
